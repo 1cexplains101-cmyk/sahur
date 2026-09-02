@@ -56,6 +56,24 @@
       --shadow-glow: 0 0 25px rgba(155, 114, 203, 0.25);
     }
 
+    .admin-badge {
+      display: none;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-pill);
+      background: rgba(217, 101, 112, 0.15);
+      color: var(--gemini-pink);
+      border: 1px solid rgba(217, 101, 112, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .admin-badge.visible {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -891,6 +909,7 @@
           <h1>Class 3CS Orbital</h1>
         </div>
         <span class="badge">Gemini Sync</span>
+        <span class="admin-badge" id="admin-status-badge"><i data-lucide="shield-check" style="width:12px;"></i> Admin</span>
       </div>
 
       <div class="header-actions">
@@ -1032,7 +1051,7 @@
 
             <div class="form-group">
               <label>Assign Cycle Day for this date</label>
-              <select class="form-control" id="date-cycle-selector" onchange="assignCycleToSelectedDate(this.value)">
+              <select class="form-control" id="date-cycle-selector" onchange="assignCycleToSelectedDate(this.value)" disabled>
                 <option value="1">Day 1</option>
                 <option value="2">Day 2</option>
                 <option value="3">Day 3</option>
@@ -1051,7 +1070,7 @@
               </div>
             </div>
 
-            <button class="btn-primary" onclick="addEventModal()">
+            <button class="btn-primary" id="add-event-btn" onclick="requireAdmin(addEventModal)" style="display: none;">
               <i data-lucide="plus"></i> Add Event / Note
             </button>
           </div>
@@ -1066,7 +1085,7 @@
               <h2 style="font-size: 1.2rem; font-weight: 800;">3CS Master Schedule Matrix</h2>
               <p style="font-size: 0.8rem; color: var(--text-muted);">Click any session box to edit subject, teacher, or classroom</p>
             </div>
-            <button class="btn-secondary" onclick="resetScheduleData()">
+            <button class="btn-secondary" id="reset-schedule-btn" onclick="requireAdmin(resetScheduleData)" style="display: none;">
               <i data-lucide="rotate-ccw" style="width:14px;"></i> Reset Defaults
             </button>
           </div>
@@ -1128,8 +1147,28 @@
 
     <footer>
       Class 3CS Orbital Schedule • Cloud Synced with Firebase • Gemini Cybernetic Aesthetics
+      <div style="margin-top: 0.5rem;">
+        <i data-lucide="lock" onclick="openAdminLogin()" style="cursor:pointer; width:14px; opacity:0.3; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3"></i>
+      </div>
     </footer>
 
+  </div>
+
+  <!-- MODAL: ADMIN LOGIN -->
+  <div class="modal-backdrop" id="modal-admin-login">
+    <div class="modal-box" style="max-width: 400px; text-align: center;">
+      <div class="modal-header" style="justify-content: center; position: relative;">
+        <div class="modal-title" style="color: var(--gemini-pink);">Admin Access Required</div>
+        <button class="icon-btn" onclick="closeModal('modal-admin-login')" style="position: absolute; right: 0; top: -10px;"><i data-lucide="x"></i></button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Enter the global admin passcode to edit the schedule for everyone.</p>
+      <div class="form-group">
+        <input type="password" id="admin-passcode-input" class="form-control" placeholder="Enter Secret Code" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;">
+      </div>
+      <div style="margin-top:0.5rem;">
+        <button class="btn-primary" style="width: 100%; background: var(--grad-glow);" onclick="verifyAdminCode()">Unlock Global Edit</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL: EDIT SESSION ITEM -->
@@ -1183,7 +1222,7 @@
 
       <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
         <button class="btn-secondary" onclick="closeModal('modal-timing')">Close</button>
-        <button class="btn-primary" onclick="saveCustomTimings()">Save Custom Timings</button>
+        <button class="btn-primary" id="save-timing-btn" onclick="saveCustomTimings()" style="display: none;">Save Custom Timings</button>
       </div>
     </div>
   </div>
@@ -1276,6 +1315,8 @@
       activeEditingCell: null // {day, sessionId}
     };
 
+    let isAdmin = false;
+    let pendingAdminAction = null;
     let firebaseDb = null;
     let currentUser = null;
 
@@ -1304,22 +1345,33 @@
           currentUser = user;
           if (user) {
             const appId = typeof __app_id !== 'undefined' ? __app_id : '3cs-app';
-            const userDocRef = doc(firebaseDb, 'artifacts', appId, 'users', user.uid, 'user_schedule_data', 'config');
             
-            // Listen to live changes
-            onSnapshot(userDocRef, (snap) => {
+            // Global Public Sync (Schedule, Timings, Calendar)
+            const globalDocRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'config', 'global_state');
+            onSnapshot(globalDocRef, (snap) => {
               if (snap.exists()) {
                 const data = snap.data();
                 if (data.schedule) state.schedule = data.schedule;
                 if (data.timings) state.timings = data.timings;
-                if (data.tasks) state.tasks = data.tasks;
                 if (data.dateCycleMap) state.dateCycleMap = data.dateCycleMap;
                 if (data.events) state.events = data.events;
                 renderAll();
-              } else {
-                saveToCloud(); // Save initial default
+              } else if (isAdmin) {
+                saveGlobalToCloud(); // Init global if admin is first
               }
-            }, (err) => console.log('Firestore error:', err));
+            }, (err) => console.log('Firestore Global sync error:', err));
+
+            // Private User Sync (Tasks)
+            const userDocRef = doc(firebaseDb, 'artifacts', appId, 'users', user.uid, 'user_schedule_data', 'config');
+            onSnapshot(userDocRef, (snap) => {
+              if (snap.exists()) {
+                const data = snap.data();
+                if (data.tasks) state.tasks = data.tasks;
+                renderTasks();
+              } else {
+                savePrivateToCloud(); 
+              }
+            }, (err) => console.log('Firestore Private sync error:', err));
           }
         });
       } catch(e) {
@@ -1327,7 +1379,27 @@
       }
     }
 
-    async function saveToCloud() {
+    async function saveGlobalToCloud() {
+      if (!firebaseDb || !currentUser || !isAdmin) return;
+      const { doc, setDoc } = window.FirebaseSDK;
+      const appId = typeof __app_id !== 'undefined' ? __app_id : '3cs-app';
+      const globalDocRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'config', 'global_state');
+      
+      try {
+        await setDoc(globalDocRef, {
+          schedule: state.schedule,
+          timings: state.timings,
+          dateCycleMap: state.dateCycleMap,
+          events: state.events,
+          updatedAt: new Date().toISOString(),
+          updatedBy: currentUser.uid
+        }, { merge: true });
+      } catch (e) {
+        console.error('Error saving global data to Firestore:', e);
+      }
+    }
+
+    async function savePrivateToCloud() {
       if (!firebaseDb || !currentUser) return;
       const { doc, setDoc } = window.FirebaseSDK;
       const appId = typeof __app_id !== 'undefined' ? __app_id : '3cs-app';
@@ -1335,15 +1407,48 @@
       
       try {
         await setDoc(userDocRef, {
-          schedule: state.schedule,
-          timings: state.timings,
           tasks: state.tasks,
-          dateCycleMap: state.dateCycleMap,
-          events: state.events,
           updatedAt: new Date().toISOString()
         }, { merge: true });
       } catch (e) {
-        console.error('Error saving to Firestore:', e);
+        console.error('Error saving private data to Firestore:', e);
+      }
+    }
+
+    /* ==========================================================================
+       2.5 ADMIN AUTH & SECURITY
+       ========================================================================== */
+    function requireAdmin(actionFn) {
+      if (isAdmin) {
+        actionFn();
+      } else {
+        pendingAdminAction = actionFn;
+        openAdminLogin();
+      }
+    }
+
+    function openAdminLogin() {
+      document.getElementById('admin-passcode-input').value = '';
+      document.getElementById('modal-admin-login').classList.add('open');
+      setTimeout(() => document.getElementById('admin-passcode-input').focus(), 100);
+    }
+
+    function verifyAdminCode() {
+      const input = document.getElementById('admin-passcode-input').value;
+      if (input === '987345') {
+        isAdmin = true;
+        document.getElementById('admin-status-badge').classList.add('visible');
+        closeModal('modal-admin-login');
+        renderAll();
+        saveGlobalToCloud(); // ensure cloud exists
+        
+        if (pendingAdminAction) {
+          pendingAdminAction();
+          pendingAdminAction = null;
+        }
+      } else {
+        alert('Access Denied: Incorrect Passcode');
+        document.getElementById('admin-passcode-input').value = '';
       }
     }
 
@@ -1575,9 +1680,10 @@
                   <span>👤 Teacher ${session[2]}</span>
                 </div>
               </div>
+              ${isAdmin ? `
               <button class="icon-btn" onclick="openEditSessionModal(${state.selectedDayView}, '${slot.id}')" title="Edit Period">
                 <i data-lucide="edit-3" style="width:14px;"></i>
-              </button>
+              </button>` : ''}
             </div>
           `;
         }
@@ -1605,7 +1711,7 @@
           const session = state.schedule[d]?.[slot.id] || ['--', '--', '--'];
           html += `
             <td>
-              <div class="table-cell-card" onclick="openEditSessionModal(${d}, '${slot.id}')">
+              <div class="table-cell-card" style="cursor: ${isAdmin ? 'pointer' : 'default'};" onclick="${isAdmin ? `openEditSessionModal(${d}, '${slot.id}')` : ''}">
                 <span class="cell-subject">${session[0]}</span>
                 <div class="cell-details">
                   <span>📍 ${session[1]}</span>
@@ -1645,7 +1751,7 @@
 
       closeModal('modal-edit-session');
       renderAll();
-      saveToCloud();
+      saveGlobalToCloud();
     }
 
     function resetScheduleData() {
@@ -1653,7 +1759,7 @@
         state.schedule = JSON.parse(JSON.stringify(defaultSchedule));
         state.timings = JSON.parse(JSON.stringify(defaultTimings));
         renderAll();
-        saveToCloud();
+        saveGlobalToCloud();
       }
     }
 
@@ -1736,6 +1842,10 @@
       const assignedCycle = state.dateCycleMap[dateStr] || '1';
       document.getElementById('date-cycle-selector').value = assignedCycle;
       document.getElementById('selected-date-cycle').innerText = assignedCycle === 'OFF' ? 'No Classes' : `Orbit Day ${assignedCycle}`;
+      
+      document.getElementById('date-cycle-selector').disabled = !isAdmin;
+      document.getElementById('add-event-btn').style.display = isAdmin ? 'inline-flex' : 'none';
+      document.getElementById('reset-schedule-btn').style.display = isAdmin ? 'inline-flex' : 'none';
 
       // Render events
       const events = state.events[dateStr] || [];
@@ -1752,19 +1862,20 @@
     }
 
     function assignCycleToSelectedDate(value) {
-      if (!state.activeInspectedDate) return;
+      if (!state.activeInspectedDate || !isAdmin) return;
       state.dateCycleMap[state.activeInspectedDate] = value;
       renderCalendar();
-      saveToCloud();
+      saveGlobalToCloud();
     }
 
     function addEventModal() {
+      if (!isAdmin) return;
       const title = prompt('Enter Event or Note title for ' + state.activeInspectedDate);
       if (title && state.activeInspectedDate) {
         if (!state.events[state.activeInspectedDate]) state.events[state.activeInspectedDate] = [];
         state.events[state.activeInspectedDate].push({ title, type: 'note' });
         renderCalendar();
-        saveToCloud();
+        saveGlobalToCloud();
       }
     }
 
@@ -1817,7 +1928,19 @@
       document.getElementById('task-input-title').value = '';
       closeModal('modal-new-task');
       renderTasks();
-      saveToCloud();
+      savePrivateToCloud();
+    }
+
+    function toggleTask(index) {
+      state.tasks[index].completed = !state.tasks[index].completed;
+      renderTasks();
+      savePrivateToCloud();
+    }
+
+    function deleteTask(index) {
+      state.tasks.splice(index, 1);
+      renderTasks();
+      savePrivateToCloud();
     }
 
     function toggleTask(index) {
@@ -1864,10 +1987,16 @@
         </div>
       `).join('');
 
+      document.getElementById('save-timing-btn').style.display = isAdmin ? 'inline-flex' : 'none';
+      
+      const inputs = listContainer.querySelectorAll('input');
+      inputs.forEach(input => input.disabled = !isAdmin);
+
       document.getElementById('modal-timing').classList.add('open');
     }
 
     function saveCustomTimings() {
+      if (!isAdmin) return;
       state.timings.forEach((slot, idx) => {
         const startVal = document.getElementById(`timing-start-${idx}`).value;
         const endVal = document.getElementById(`timing-end-${idx}`).value;
@@ -1877,7 +2006,7 @@
 
       closeModal('modal-timing');
       renderAll();
-      saveToCloud();
+      saveGlobalToCloud();
     }
 
     function applyTimeSimulation() {
