@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class 3CS | Orbital Schedule</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f1015;
+      --card-bg: rgba(30, 31, 35, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #e3e3e3;
+      --text-sub: #9aa0a6;
+      --gemini-blue: #4285f4;
+      --gemini-purple: #9b72cb;
+      --gemini-pink: #d96570;
+      --gemini-peach: #d88c51;
+      --gradient-primary: linear-gradient(135deg, #a8c7fa 0%, #c3edd2 50%, #d3e3fd 100%);
+      --gradient-glow: linear-gradient(135deg, #4285f4 0%, #9b72cb 50%, #d96570 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(66, 133, 244, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(155, 114, 203, 0.15) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .sparkle-icon {
+      width: 28px;
+      height: 28px;
+      fill: url(#gemini-grad);
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    p.subtitle {
+      color: var(--text-sub);
+      font-size: 0.95rem;
+    }
+
+    /* Day Navigation Tabs */
+    .day-selector {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+      scrollbar-width: none;
+    }
+
+    .day-selector::-webkit-scrollbar {
+      display: none;
+    }
+
+    .day-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      color: var(--text-sub);
+      padding: 0.6rem 1.2rem;
+      border-radius: 99px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.25s ease;
+    }
+
+    .day-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .day-btn.active {
+      background: var(--gradient-glow);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(155, 114, 203, 0.3);
+    }
+
+    /* Timeline & Cards */
+    .schedule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .session-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 1.2rem;
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      align-items: center;
+      gap: 1rem;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .session-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(168, 199, 250, 0.3);
+    }
+
+    .session-card.break {
+      background: rgba(255, 255, 255, 0.02);
+      border-style: dashed;
+      opacity: 0.7;
+    }
+
+    .time-slot {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .time-range {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .session-label {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .subject {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .tags {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .pill {
+      font-size: 0.8rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #c4c7c5;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .pill.room {
+      color: #a8c7fa;
+      background: rgba(66, 133, 244, 0.1);
+    }
+
+    .pill.teacher {
+      color: #c3edd2;
+      background: rgba(52, 168, 83, 0.1);
+    }
+
+    @media (max-width: 600px) {
+      .session-card {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+      
+      .details {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <svg style="width:0;height:0;position:absolute;">
+    <linearGradient id="gemini-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4285f4" />
+      <stop offset="50%" stop-color="#9b72cb" />
+      <stop offset="100%" stop-color="#d96570" />
+    </linearGradient>
+  </svg>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <svg class="sparkle-icon" viewBox="0 0 24 24">
+          <path d="M12 0C12 6.62742 6.62742 12 0 12C6.62742 12 12 17.3726 12 24C12 17.3726 17.3726 12 24 12C17.3726 12 12 6.62742 12 0Z"/>
+        </svg>
+        <h1>Class 3CS Orbital Schedule</h1>
+      </div>
+      <p class="subtitle">Select an orbit day to view sessions & locations</p>
+    </header>
+
+    <div class="day-selector">
+      <button class="day-btn active" onclick="showDay(1, this)">Day 1</button>
+      <button class="day-btn" onclick="showDay(2, this)">Day 2</button>
+      <button class="day-btn" onclick="showDay(3, this)">Day 3</button>
+      <button class="day-btn" onclick="showDay(4, this)">Day 4</button>
+      <button class="day-btn" onclick="showDay(5, this)">Day 5</button>
+      <button class="day-btn" onclick="showDay(6, this)">Day 6</button>
+      <button class="day-btn" onclick="showDay(7, this)">Day 7</button>
+    </div>
+
+    <div class="schedule-list" id="schedule-container"></div>
+  </div>
+
+  <script>
+    const times = [
+      { id: 'S1', label: 'Session 1', time: '08:00 – 08:55' },
+      { id: 'B1', label: 'Transit', time: '08:55 – 09:00', isBreak: true, name: 'Quick Break' },
+      { id: 'S2', label: 'Session 2', time: '09:00 – 09:55' },
+      { id: 'B2', label: 'Recharge', time: '09:55 – 10:05', isBreak: true, name: 'Morning Break' },
+      { id: 'S3', label: 'Session 3', time: '10:05 – 11:00' },
+      { id: 'B3', label: 'Transit', time: '11:00 – 11:05', isBreak: true, name: 'Quick Break' },
+      { id: 'S4', label: 'Session 4', time: '11:05 – 12:00' },
+      { id: 'LUNCH', label: 'Midday Orbit', time: '12:00 – 13:00', isBreak: true, name: 'Lunch Break 🍱' },
+      { id: 'S5', label: 'Session 5', time: '13:00 – 13:55' },
+      { id: 'B4', label: 'Transit', time: '13:55 – 14:00', isBreak: true, name: 'Quick Break' },
+      { id: 'S6', label: 'Session 6', time: '14:05 – 15:00' },
+    ];
+
+    const scheduleData = {
+      1: { S1: ['FL&E', 'N2', 'LL'], S2: ['Span', 'N5', 'JB'], S3: ['LA', 'D1', 'KG'], S4: ['BS', 'N3', 'DD'], S5: ['Span', 'N5', 'JB'], S6: ['QR', 'D2', 'JM'] },
+      2: { S1: ['QR', 'D2', 'JM'], S2: ['DA&M', 'DAS', 'CST / CC'], S3: ['FA', 'FAS', 'KS'], S4: ['LA', 'D1', 'KG'], S5: ['S&T', 'D4', 'BM'], S6: ['M', 'MS', 'AK'] },
+      3: { S1: ['FA', 'FAS', 'KS'], S2: ['LA', 'D1', 'KG'], S3: ['M', 'MS', 'AK'], S4: ['M', 'MS', 'AK'], S5: ['PE', 'D3', 'CW'], S6: ['S&T', 'D4', 'BM'] },
+      4: { S1: ['FA', 'FAS', 'KS'], S2: ['M', 'MS', 'AK'], S3: ['DA&M', 'DAS', 'CST / CC'], S4: ['LS', 'N3', 'DD'], S5: ['LA', 'D1', 'KG'], S6: ['QR', 'D2', 'JM'] },
+      5: { S1: ['LA', 'D1', 'KG'], S2: ['DA&M', 'DAS', 'CST / CC'], S3: ['QR', 'D2', 'JM'], S4: ['PE', 'D3', 'CW'], S5: ['CP', 'N4', 'KC'], S6: ['CP', 'N4', 'KC'] },
+      6: { S1: ['LA', 'D1', 'KG'], S2: ['DA&M', 'DAS', 'CST / CC'], S3: ['DA&M', 'DAS', 'CST / CC'], S4: ['S&T', 'D4', 'BM'], S5: ['QR', 'D2', 'JM'], S6: ['Digital A Arts Fine', 'MS', 'CC'] },
+      7: { S1: ['DA&M', 'DAS', 'CST / CC'], S2: ['BS', 'N3', 'DD'], S3: ['S&T', 'D4', 'BM'], S4: ['QR', 'D2', 'JM'], S5: ['PLC', 'Not listed', 'Staff'], S6: ['PLC', 'Not listed', 'Staff'] }
+    };
+
+    function showDay(dayNumber, btn) {
+      if (btn) {
+        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
+      const container = document.getElementById('schedule-container');
+      const daySessions = scheduleData[dayNumber];
+      
+      let html = '';
+
+      times.forEach(slot => {
+        if (slot.isBreak) {
+          html += `
+            <div class="session-card break">
+              <div class="time-slot">
+                <span class="time-range">${slot.time}</span>
+                <span class="session-label">${slot.label}</span>
+              </div>
+              <div class="details">
+                <span class="subject" style="font-size: 0.95rem; font-weight: 500; color: var(--text-sub);">${slot.name}</span>
+              </div>
+            </div>
+          `;
+        } else {
+          const session = daySessions[slot.id];
+          if (session) {
+            html += `
+              <div class="session-card">
+                <div class="time-slot">
+                  <span class="time-range">${slot.time}</span>
+                  <span class="session-label">${slot.label}</span>
+                </div>
+                <div class="details">
+                  <span class="subject">${session[0]}</span>
+                  <div class="tags">
+                    <span class="pill room">📍 ${session[1]}</span>
+                    <span class="pill teacher">👤 ${session[2]}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+        }
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Initial load
+    showDay(1);
+  </script>
+</body>
+</html>
