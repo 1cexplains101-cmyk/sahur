@@ -3,21 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Class 3CS | Orbital Schedule</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Gemini Orbital | 3CS Academic Suite</title>
+  
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Firebase Web SDK v11 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    window.FirebaseSDK = {
+      initializeApp, getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged,
+      getFirestore, doc, setDoc, getDoc, onSnapshot
+    };
+  </script>
+
   <style>
     :root {
-      --bg-dark: #0f1015;
-      --card-bg: rgba(30, 31, 35, 0.7);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text-main: #e3e3e3;
-      --text-sub: #9aa0a6;
+      --bg-dark: #090a0f;
+      --bg-surface: rgba(22, 24, 34, 0.75);
+      --bg-surface-hover: rgba(35, 38, 54, 0.85);
+      --bg-glass-card: rgba(255, 255, 255, 0.03);
+      --border-glow: rgba(255, 255, 255, 0.1);
+      --border-accent: rgba(168, 199, 250, 0.25);
+      
       --gemini-blue: #4285f4;
+      --gemini-light-blue: #a8c7fa;
       --gemini-purple: #9b72cb;
       --gemini-pink: #d96570;
       --gemini-peach: #d88c51;
-      --gradient-primary: linear-gradient(135deg, #a8c7fa 0%, #c3edd2 50%, #d3e3fd 100%);
-      --gradient-glow: linear-gradient(135deg, #4285f4 0%, #9b72cb 50%, #d96570 100%);
+      --gemini-green: #c3edd2;
+      
+      --grad-gemini: linear-gradient(135deg, #a8c7fa 0%, #9b72cb 50%, #d96570 100%);
+      --grad-glow: linear-gradient(135deg, rgba(66, 133, 244, 0.3) 0%, rgba(155, 114, 203, 0.3) 50%, rgba(217, 101, 112, 0.3) 100%);
+      --grad-accent-btn: linear-gradient(135deg, #4285f4, #9b72cb);
+
+      --text-main: #f1f3f4;
+      --text-muted: #9aa0a6;
+      --text-dim: #5f6368;
+      
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-pill: 9999px;
+
+      --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
+      --shadow-glow: 0 0 25px rgba(155, 114, 203, 0.25);
     }
 
     * {
@@ -25,248 +61,1185 @@
       margin: 0;
       padding: 0;
       font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
     }
 
     body {
       background-color: var(--bg-dark);
       color: var(--text-main);
       min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Canvas */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* App Shell */
+    .app-shell {
+      position: relative;
+      z-index: 1;
       display: flex;
-      justify-content: center;
-      padding: 2rem 1rem;
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(66, 133, 244, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(155, 114, 203, 0.15) 0%, transparent 40%);
-      background-attachment: fixed;
+      flex-direction: column;
+      min-height: 100vh;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      gap: 1.5rem;
     }
 
-    .container {
-      width: 100%;
-      max-width: 900px;
-    }
-
-    header {
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-
-    .brand {
-      display: inline-flex;
+    /* Header Bar */
+    header.orbital-header {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.75rem;
+      box-shadow: var(--shadow-card);
     }
 
-    .sparkle-icon {
-      width: 28px;
-      height: 28px;
-      fill: url(#gemini-grad);
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
     }
 
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      background: var(--gradient-primary);
+    .gemini-sparkle-icon {
+      width: 32px;
+      height: 32px;
+      animation: pulseGlow 4s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 4px rgba(168, 199, 250, 0.6)); }
+      100% { transform: scale(1.1) rotate(15deg); filter: drop-shadow(0 0 15px rgba(217, 101, 112, 0.8)); }
+    }
+
+    .brand-title h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: var(--grad-gemini);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: -0.5px;
     }
 
-    p.subtitle {
-      color: var(--text-sub);
-      font-size: 0.95rem;
+    .brand-title span.badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-pill);
+      background: rgba(168, 199, 250, 0.15);
+      color: var(--gemini-light-blue);
+      border: 1px solid rgba(168, 199, 250, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    /* Day Navigation Tabs */
-    .day-selector {
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .live-clock-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-accent);
+      padding: 0.45rem 1rem;
+      border-radius: var(--radius-pill);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--gemini-light-blue);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--gemini-green);
+      box-shadow: 0 0 8px var(--gemini-green);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Navigation Tabs */
+    nav.nav-tabs {
       display: flex;
       gap: 0.5rem;
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      padding: 0.4rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-glow);
       overflow-x: auto;
-      padding-bottom: 0.5rem;
-      margin-bottom: 1.5rem;
       scrollbar-width: none;
     }
 
-    .day-selector::-webkit-scrollbar {
-      display: none;
-    }
+    nav.nav-tabs::-webkit-scrollbar { display: none; }
 
-    .day-btn {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--card-border);
-      color: var(--text-sub);
-      padding: 0.6rem 1.2rem;
-      border-radius: 99px;
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: var(--radius-pill);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
       font-weight: 600;
       font-size: 0.88rem;
       cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       white-space: nowrap;
-      transition: all 0.25s ease;
     }
 
-    .day-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
+    .nav-btn:hover {
       color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
     }
 
-    .day-btn.active {
-      background: var(--gradient-glow);
+    .nav-btn.active {
+      background: var(--grad-accent-btn);
       color: #fff;
-      border-color: transparent;
-      box-shadow: 0 4px 15px rgba(155, 114, 203, 0.3);
+      box-shadow: 0 4px 15px rgba(66, 133, 244, 0.35);
     }
 
-    /* Timeline & Cards */
-    .schedule-list {
+    /* Main Content Area */
+    main.content-area {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.35s ease forwards;
+    }
+
+    .tab-pane.active {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Glass Panels */
+    .glass-panel {
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Live Orbit Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Hero Clock & Current Class Widget */
+    .current-session-widget {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.25rem;
+      background: linear-gradient(180deg, rgba(30, 34, 50, 0.8) 0%, rgba(15, 17, 26, 0.9) 100%);
+      border: 1px solid var(--border-accent);
+      position: relative;
+    }
+
+    .current-session-widget::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(155, 114, 203, 0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .progress-ring-container {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-ring {
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring-circle-bg {
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 8;
+    }
+
+    .progress-ring-circle {
+      stroke: url(#ring-gradient);
+      stroke-width: 8;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .clock-inner {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .time-large {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .time-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .session-info-card {
+      width: 100%;
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glow);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .session-tag {
+      align-self: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--gemini-purple);
+      background: rgba(155, 114, 203, 0.15);
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+    }
+
+    .session-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: var(--grad-gemini);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .session-meta-row {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .session-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* Day Orbit Selector & Timeline */
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .cycle-pills {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+    }
+
+    .cycle-btn {
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-glow);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cycle-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .cycle-btn.active {
+      background: var(--gemini-blue);
+      color: #fff;
+      border-color: var(--gemini-light-blue);
+      box-shadow: 0 0 12px rgba(66, 133, 244, 0.4);
+    }
+
+    .timeline-list {
       display: flex;
       flex-direction: column;
       gap: 0.85rem;
     }
 
-    .session-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      padding: 1.2rem;
+    .timeline-card {
       display: grid;
-      grid-template-columns: 140px 1fr;
+      grid-template-columns: 130px 1fr auto;
       align-items: center;
       gap: 1rem;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-
-    .session-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(168, 199, 250, 0.3);
-    }
-
-    .session-card.break {
       background: rgba(255, 255, 255, 0.02);
-      border-style: dashed;
-      opacity: 0.7;
+      border: 1px solid var(--border-glow);
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-md);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .time-slot {
+    .timeline-card:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-accent);
+      transform: translateX(4px);
+    }
+
+    .timeline-card.now-active {
+      background: linear-gradient(90deg, rgba(66, 133, 244, 0.15) 0%, rgba(155, 114, 203, 0.05) 100%);
+      border: 1px solid var(--gemini-blue);
+      box-shadow: 0 4px 20px rgba(66, 133, 244, 0.2);
+    }
+
+    .timeline-card.break-card {
+      opacity: 0.65;
+      border-style: dashed;
+    }
+
+    .time-box {
       display: flex;
       flex-direction: column;
     }
 
-    .time-range {
-      font-size: 0.95rem;
+    .time-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
       font-weight: 600;
       color: var(--text-main);
     }
 
-    .session-label {
-      font-size: 0.75rem;
-      color: var(--text-sub);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
+    .session-title-slot {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
     }
 
-    .details {
+    .slot-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .slot-meta {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Action Icon Button */
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glow);
+      color: var(--text-muted);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      transform: scale(1.05);
+    }
+
+    /* Timetable Matrix Grid View */
+    .timetable-grid-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-glow);
+    }
+
+    table.timetable-matrix {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      min-width: 900px;
+    }
+
+    table.timetable-matrix th, table.timetable-matrix td {
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    table.timetable-matrix th {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--gemini-light-blue);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    table.timetable-matrix tr:nth-child(even) td {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .table-cell-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.6rem;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .table-cell-card:hover {
+      border-color: var(--gemini-purple);
+      background: rgba(155, 114, 203, 0.12);
+    }
+
+    .cell-subject {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .cell-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Interactive Calendar View */
+    .calendar-container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .calendar-container { grid-template-columns: 1fr; }
+    }
+
+    .calendar-header-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .month-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .calendar-grid-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-glow);
+      margin-bottom: 0.75rem;
+    }
+
+    .calendar-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
       gap: 0.5rem;
     }
 
-    .subject {
+    .cal-day-cell {
+      min-height: 85px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cal-day-cell:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--border-accent);
+    }
+
+    .cal-day-cell.other-month {
+      opacity: 0.25;
+    }
+
+    .cal-day-cell.today {
+      border-color: var(--gemini-blue);
+      background: rgba(66, 133, 244, 0.1);
+    }
+
+    .cal-day-num {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .cal-cycle-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(155, 114, 203, 0.2);
+      color: var(--gemini-purple);
+      align-self: flex-start;
+    }
+
+    .cal-event-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gemini-pink);
+    }
+
+    /* Tasks / To-Do Manager */
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .tasks-grid { grid-template-columns: 1fr; }
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glow);
+      margin-bottom: 0.65rem;
+      transition: all 0.2s;
+    }
+
+    .task-item:hover {
+      border-color: var(--border-accent);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .task-item.completed span.task-text {
+      text-decoration: line-through;
+      opacity: 0.4;
+    }
+
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .custom-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .custom-checkbox.checked {
+      background: var(--gemini-green);
+      border-color: var(--gemini-green);
+      color: #000;
+    }
+
+    /* Time travel / Timing Adjuster Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .modal-box {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      padding: 1.75rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
       font-size: 1.2rem;
       font-weight: 700;
       color: #fff;
     }
 
-    .tags {
+    .form-group {
       display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-group label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .form-control {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.85rem;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--gemini-blue);
+    }
+
+    .btn-primary {
+      background: var(--grad-accent-btn);
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       gap: 0.5rem;
+      transition: all 0.2s;
     }
 
-    .pill {
+    .btn-primary:hover {
+      box-shadow: 0 4px 20px rgba(66, 133, 244, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--border-glow);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-pill);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    /* Subject Directory Cards */
+    .subject-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .subject-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: all 0.25s;
+    }
+
+    .subject-card:hover {
+      border-color: var(--gemini-blue);
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .subject-code-badge {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--gemini-light-blue);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      color: var(--text-dim);
       font-size: 0.8rem;
-      padding: 0.3rem 0.75rem;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      color: #c4c7c5;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .pill.room {
-      color: #a8c7fa;
-      background: rgba(66, 133, 244, 0.1);
-    }
-
-    .pill.teacher {
-      color: #c3edd2;
-      background: rgba(52, 168, 83, 0.1);
-    }
-
-    @media (max-width: 600px) {
-      .session-card {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-      }
-      
-      .details {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+      margin-top: auto;
+      padding-top: 1rem;
     }
   </style>
 </head>
 <body>
 
-  <svg style="width:0;height:0;position:absolute;">
-    <linearGradient id="gemini-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4285f4" />
-      <stop offset="50%" stop-color="#9b72cb" />
-      <stop offset="100%" stop-color="#d96570" />
-    </linearGradient>
-  </svg>
+  <!-- Background Animated Canvas -->
+  <canvas id="bg-canvas"></canvas>
 
-  <div class="container">
-    <header>
-      <div class="brand">
-        <svg class="sparkle-icon" viewBox="0 0 24 24">
-          <path d="M12 0C12 6.62742 6.62742 12 0 12C6.62742 12 12 17.3726 12 24C12 17.3726 17.3726 12 24 12C17.3726 12 12 6.62742 12 0Z"/>
+  <div class="app-shell">
+    
+    <!-- Top Bar Header -->
+    <header class="orbital-header">
+      <div class="brand-title">
+        <svg class="gemini-sparkle-icon" viewBox="0 0 24 24" fill="none">
+          <path d="M12 0C12 6.62742 6.62742 12 0 12C6.62742 12 12 17.3726 12 24C12 17.3726 17.3726 12 24 12C17.3726 12 12 6.62742 12 0Z" fill="url(#brand-grad)"/>
+          <defs>
+            <linearGradient id="brand-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#4285f4"/>
+              <stop offset="0.5" stop-color="#9b72cb"/>
+              <stop offset="1" stop-color="#d96570"/>
+            </linearGradient>
+          </defs>
         </svg>
-        <h1>Class 3CS Orbital Schedule</h1>
+        <div>
+          <h1>Class 3CS Orbital</h1>
+        </div>
+        <span class="badge">Gemini Sync</span>
       </div>
-      <p class="subtitle">Select an orbit day to view sessions & locations</p>
+
+      <div class="header-actions">
+        <div class="live-clock-badge">
+          <div class="status-dot"></div>
+          <span id="live-time-display">00:00:00 AM</span>
+        </div>
+        <button class="icon-btn" onclick="openTimingModal()" title="Customize Period Times & Time Simulation">
+          <i data-lucide="clock"></i>
+        </button>
+        <button class="icon-btn" onclick="toggleAudioChime()" id="audio-toggle-btn" title="Toggle Transition Chime">
+          <i data-lucide="volume-2"></i>
+        </button>
+      </div>
     </header>
 
-    <div class="day-selector">
-      <button class="day-btn active" onclick="showDay(1, this)">Day 1</button>
-      <button class="day-btn" onclick="showDay(2, this)">Day 2</button>
-      <button class="day-btn" onclick="showDay(3, this)">Day 3</button>
-      <button class="day-btn" onclick="showDay(4, this)">Day 4</button>
-      <button class="day-btn" onclick="showDay(5, this)">Day 5</button>
-      <button class="day-btn" onclick="showDay(6, this)">Day 6</button>
-      <button class="day-btn" onclick="showDay(7, this)">Day 7</button>
-    </div>
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-btn active" onclick="switchTab('dashboard', this)">
+        <i data-lucide="layout-dashboard"></i> Live Orbit
+      </button>
+      <button class="nav-btn" onclick="switchTab('calendar', this)">
+        <i data-lucide="calendar"></i> Master Calendar
+      </button>
+      <button class="nav-btn" onclick="switchTab('timetable', this)">
+        <i data-lucide="grid"></i> Full Matrix
+      </button>
+      <button class="nav-btn" onclick="switchTab('tasks', this)">
+        <i data-lucide="check-square"></i> Tasks & Assignments
+      </button>
+      <button class="nav-btn" onclick="switchTab('directory', this)">
+        <i data-lucide="book-open"></i> Subjects & Rooms
+      </button>
+    </nav>
 
-    <div class="schedule-list" id="schedule-container"></div>
+    <!-- Content Pages -->
+    <main class="content-area">
+
+      <!-- TAB 1: LIVE DASHBOARD -->
+      <div id="tab-dashboard" class="tab-pane active">
+        <div class="dashboard-grid">
+          
+          <!-- Current Active Session Card -->
+          <div class="glass-panel current-session-widget">
+            <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+              <span class="session-tag" id="orbit-cycle-indicator">Orbit Day 1</span>
+              <button class="icon-btn" style="width:28px; height:28px;" onclick="openCycleModal()" title="Map Today's Cycle Day">
+                <i data-lucide="refresh-cw" style="width:14px;"></i>
+              </button>
+            </div>
+
+            <div class="progress-ring-container">
+              <svg class="progress-ring" width="170" height="170">
+                <defs>
+                  <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4285f4" />
+                    <stop offset="50%" stop-color="#9b72cb" />
+                    <stop offset="100%" stop-color="#d96570" />
+                  </linearGradient>
+                </defs>
+                <circle class="progress-ring-circle-bg" cx="85" cy="85" r="70" fill="transparent" />
+                <circle id="session-progress-circle" class="progress-ring-circle" cx="85" cy="85" r="70" fill="transparent" />
+              </svg>
+              <div class="clock-inner">
+                <span class="time-large" id="countdown-timer">00:00</span>
+                <span class="time-sub" id="countdown-label">Remaining</span>
+              </div>
+            </div>
+
+            <div class="session-info-card">
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;" id="active-session-label">Session 1</span>
+              <div class="session-name" id="active-subject-name">Loading...</div>
+              <div class="session-meta-row">
+                <div class="session-meta-item">
+                  <i data-lucide="map-pin" style="width:14px; color:var(--gemini-light-blue);"></i>
+                  <span id="active-room-name">--</span>
+                </div>
+                <div class="session-meta-item">
+                  <i data-lucide="user" style="width:14px; color:var(--gemini-green);"></i>
+                  <span id="active-teacher-name">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size:0.8rem; color:var(--text-muted); display:flex; gap:0.5rem; align-items:center;">
+              <i data-lucide="sparkles" style="width:14px; color:var(--gemini-pink);"></i>
+              <span id="next-up-preview">Next: Session 2</span>
+            </div>
+          </div>
+
+          <!-- Day Session Sequence -->
+          <div class="glass-panel">
+            <div class="timeline-header">
+              <div>
+                <h2 style="font-size: 1.2rem; font-weight: 800;">Daily Sequence</h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Select cycle day to preview periods</p>
+              </div>
+              <div class="cycle-pills" id="day-picker-pills">
+                <!-- Javascript rendered -->
+              </div>
+            </div>
+
+            <div class="timeline-list" id="timeline-cards-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: MASTER CALENDAR & CYCLE MAPPER -->
+      <div id="tab-calendar" class="tab-pane">
+        <div class="calendar-container">
+          <div class="glass-panel">
+            <div class="calendar-header-nav">
+              <div class="month-title" id="cal-month-year-text">September 2026</div>
+              <div style="display:flex; gap:0.5rem;">
+                <button class="icon-btn" onclick="prevMonth()"><i data-lucide="chevron-left"></i></button>
+                <button class="btn-secondary" style="padding:0.4rem 0.9rem; font-size:0.8rem;" onclick="jumpToToday()">Today</button>
+                <button class="icon-btn" onclick="nextMonth()"><i data-lucide="chevron-right"></i></button>
+              </div>
+            </div>
+
+            <div class="calendar-grid-header">
+              <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+            </div>
+
+            <div class="calendar-days-grid" id="calendar-days-box">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Selected Day Inspector Sidebar -->
+          <div class="glass-panel" style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div>
+              <span class="session-tag" id="selected-date-cycle">Cycle Day 1</span>
+              <h3 style="font-size: 1.3rem; font-weight:800; margin-top:0.3rem;" id="selected-date-title">Today</h3>
+            </div>
+
+            <div class="form-group">
+              <label>Assign Cycle Day for this date</label>
+              <select class="form-control" id="date-cycle-selector" onchange="assignCycleToSelectedDate(this.value)">
+                <option value="1">Day 1</option>
+                <option value="2">Day 2</option>
+                <option value="3">Day 3</option>
+                <option value="4">Day 4</option>
+                <option value="5">Day 5</option>
+                <option value="6">Day 6</option>
+                <option value="7">Day 7</option>
+                <option value="OFF">No Classes (Holiday/Weekend)</option>
+              </select>
+            </div>
+
+            <div>
+              <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--gemini-light-blue); margin-bottom: 0.5rem;">Events & Reminders</h4>
+              <div id="day-events-list" style="display:flex; flex-direction:column; gap:0.5rem;">
+                <!-- List -->
+              </div>
+            </div>
+
+            <button class="btn-primary" onclick="addEventModal()">
+              <i data-lucide="plus"></i> Add Event / Note
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: FULL MATRIX TIMETABLE -->
+      <div id="tab-timetable" class="tab-pane">
+        <div class="glass-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+            <div>
+              <h2 style="font-size: 1.2rem; font-weight: 800;">3CS Master Schedule Matrix</h2>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Click any session box to edit subject, teacher, or classroom</p>
+            </div>
+            <button class="btn-secondary" onclick="resetScheduleData()">
+              <i data-lucide="rotate-ccw" style="width:14px;"></i> Reset Defaults
+            </button>
+          </div>
+
+          <div class="timetable-grid-wrapper">
+            <table class="timetable-matrix">
+              <thead>
+                <tr>
+                  <th>Session / Day</th>
+                  <th>Day 1</th>
+                  <th>Day 2</th>
+                  <th>Day 3</th>
+                  <th>Day 4</th>
+                  <th>Day 5</th>
+                  <th>Day 6</th>
+                  <th>Day 7</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-tbody">
+                <!-- Javascript populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: TASKS & ASSIGNMENTS -->
+      <div id="tab-tasks" class="tab-pane">
+        <div class="glass-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+            <div>
+              <h2 style="font-size: 1.2rem; font-weight: 800;">Academic Tasks & To-Dos</h2>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Stay on top of homework, projects, and study goals</p>
+            </div>
+            <button class="btn-primary" onclick="openNewTaskModal()">
+              <i data-lucide="plus"></i> New Task
+            </button>
+          </div>
+
+          <div id="tasks-container-list">
+            <!-- JS populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: SUBJECT & ROOM DIRECTORY -->
+      <div id="tab-directory" class="tab-pane">
+        <div class="glass-panel">
+          <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.3rem;">3CS Course Directory</h2>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">Classroom codes and instructor directory</p>
+
+          <div class="subject-grid" id="subject-directory-cards">
+            <!-- JS Populated -->
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <footer>
+      Class 3CS Orbital Schedule • Cloud Synced with Firebase • Gemini Cybernetic Aesthetics
+    </footer>
+
+  </div>
+
+  <!-- MODAL: EDIT SESSION ITEM -->
+  <div class="modal-backdrop" id="modal-edit-session">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Edit Class Period</div>
+        <button class="icon-btn" onclick="closeModal('modal-edit-session')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="form-group">
+        <label>Subject Code / Title</label>
+        <input type="text" id="edit-sub-code" class="form-control" placeholder="e.g. DA&M">
+      </div>
+      <div class="form-group">
+        <label>Classroom Location</label>
+        <input type="text" id="edit-sub-room" class="form-control" placeholder="e.g. DAS">
+      </div>
+      <div class="form-group">
+        <label>Teacher Initials</label>
+        <input type="text" id="edit-sub-teacher" class="form-control" placeholder="e.g. CST / CC">
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+        <button class="btn-secondary" onclick="closeModal('modal-edit-session')">Cancel</button>
+        <button class="btn-primary" onclick="saveSessionEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TIMING & TIME TRAVEL ADJUSTER -->
+  <div class="modal-backdrop" id="modal-timing">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">Schedule Timing & Simulation</div>
+        <button class="icon-btn" onclick="closeModal('modal-timing')"><i data-lucide="x"></i></button>
+      </div>
+      
+      <div class="form-group">
+        <label style="color:var(--gemini-pink);">Time Simulation (Time Travel)</label>
+        <div style="display:flex; gap:0.5rem;">
+          <input type="time" id="sim-time-input" class="form-control" style="flex:1;">
+          <button class="btn-primary" onclick="applyTimeSimulation()">Apply Test Time</button>
+          <button class="btn-secondary" onclick="clearTimeSimulation()">Real Time</button>
+        </div>
+      </div>
+
+      <hr style="border-color:var(--border-glow); margin: 0.5rem 0;">
+
+      <div style="max-height: 250px; overflow-y: auto; padding-right:0.5rem; display:flex; flex-direction:column; gap:0.75rem;" id="timing-list-editor">
+        <!-- JS rendered timing inputs -->
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+        <button class="btn-secondary" onclick="closeModal('modal-timing')">Close</button>
+        <button class="btn-primary" onclick="saveCustomTimings()">Save Custom Timings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW TASK -->
+  <div class="modal-backdrop" id="modal-new-task">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Create Task / Homework</div>
+        <button class="icon-btn" onclick="closeModal('modal-new-task')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="form-group">
+        <label>Task Description</label>
+        <input type="text" id="task-input-title" class="form-control" placeholder="e.g. Complete DA&M Project Report">
+      </div>
+      <div class="form-group">
+        <label>Associated Course</label>
+        <select class="form-control" id="task-input-subject">
+          <option value="General">General</option>
+          <option value="DA&M">DA&M</option>
+          <option value="LA">LA</option>
+          <option value="FA">FA</option>
+          <option value="QR">QR</option>
+          <option value="S&T">S&T</option>
+          <option value="M">M</option>
+          <option value="Span">Span</option>
+          <option value="BS">BS</option>
+          <option value="CP">CP</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:0.5rem;">
+        <button class="btn-secondary" onclick="closeModal('modal-new-task')">Cancel</button>
+        <button class="btn-primary" onclick="saveNewTask()">Add Task</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    const times = [
-      { id: 'S1', label: 'Session 1', time: '08:00 – 08:55' },
-      { id: 'B1', label: 'Transit', time: '08:55 – 09:00', isBreak: true, name: 'Quick Break' },
-      { id: 'S2', label: 'Session 2', time: '09:00 – 09:55' },
-      { id: 'B2', label: 'Recharge', time: '09:55 – 10:05', isBreak: true, name: 'Morning Break' },
-      { id: 'S3', label: 'Session 3', time: '10:05 – 11:00' },
-      { id: 'B3', label: 'Transit', time: '11:00 – 11:05', isBreak: true, name: 'Quick Break' },
-      { id: 'S4', label: 'Session 4', time: '11:05 – 12:00' },
-      { id: 'LUNCH', label: 'Midday Orbit', time: '12:00 – 13:00', isBreak: true, name: 'Lunch Break 🍱' },
-      { id: 'S5', label: 'Session 5', time: '13:00 – 13:55' },
-      { id: 'B4', label: 'Transit', time: '13:55 – 14:00', isBreak: true, name: 'Quick Break' },
-      { id: 'S6', label: 'Session 6', time: '14:05 – 15:00' },
+    /* ==========================================================================
+       1. INITIAL DEFAULT DATA & STATE
+       ========================================================================== */
+    const defaultTimings = [
+      { id: 'S1', label: 'Session 1', start: '08:00', end: '08:55', type: 'class' },
+      { id: 'B1', label: 'Transit Break', start: '08:55', end: '09:00', type: 'break', name: 'Quick Transit' },
+      { id: 'S2', label: 'Session 2', start: '09:00', end: '09:55', type: 'class' },
+      { id: 'B2', label: 'Morning Recharge', start: '09:55', end: '10:05', type: 'break', name: 'Morning Break' },
+      { id: 'S3', label: 'Session 3', start: '10:05', end: '11:00', type: 'class' },
+      { id: 'B3', label: 'Transit Break', start: '11:00', end: '11:05', type: 'break', name: 'Quick Transit' },
+      { id: 'S4', label: 'Session 4', start: '11:05', end: '12:00', type: 'class' },
+      { id: 'LUNCH', label: 'Solar Lunch', start: '12:00', end: '13:00', type: 'break', name: 'Lunch Break 🍱' },
+      { id: 'S5', label: 'Session 5', start: '13:00', end: '13:55', type: 'class' },
+      { id: 'B4', label: 'Transit Break', start: '13:55', end: '14:05', type: 'break', name: 'Quick Transit' },
+      { id: 'S6', label: 'Session 6', start: '14:05', end: '15:00', type: 'class' }
     ];
 
-    const scheduleData = {
+    const defaultSchedule = {
       1: { S1: ['FL&E', 'N2', 'LL'], S2: ['Span', 'N5', 'JB'], S3: ['LA', 'D1', 'KG'], S4: ['BS', 'N3', 'DD'], S5: ['Span', 'N5', 'JB'], S6: ['QR', 'D2', 'JM'] },
       2: { S1: ['QR', 'D2', 'JM'], S2: ['DA&M', 'DAS', 'CST / CC'], S3: ['FA', 'FAS', 'KS'], S4: ['LA', 'D1', 'KG'], S5: ['S&T', 'D4', 'BM'], S6: ['M', 'MS', 'AK'] },
       3: { S1: ['FA', 'FAS', 'KS'], S2: ['LA', 'D1', 'KG'], S3: ['M', 'MS', 'AK'], S4: ['M', 'MS', 'AK'], S5: ['PE', 'D3', 'CW'], S6: ['S&T', 'D4', 'BM'] },
@@ -276,57 +1249,701 @@
       7: { S1: ['DA&M', 'DAS', 'CST / CC'], S2: ['BS', 'N3', 'DD'], S3: ['S&T', 'D4', 'BM'], S4: ['QR', 'D2', 'JM'], S5: ['PLC', 'Not listed', 'Staff'], S6: ['PLC', 'Not listed', 'Staff'] }
     };
 
-    function showDay(dayNumber, btn) {
-      if (btn) {
-        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    const courseCatalog = [
+      { code: 'DA&M', name: 'Data Analysis & Modeling', desc: 'Focuses on statistics, database logic, and analytical problem solving.', icon: 'database' },
+      { code: 'LA', name: 'Language Arts', desc: 'Literature analysis, structured writing, and verbal expression.', icon: 'book' },
+      { code: 'FA', name: 'Fine Arts / Foundation', desc: 'Creative studio exploration and digital design methodologies.', icon: 'palette' },
+      { code: 'QR', name: 'Quantitative Reasoning', desc: 'Advanced problem solving, logic puzzles, and applied mathematics.', icon: 'calculator' },
+      { code: 'S&T', name: 'Science & Technology', desc: 'Physical science, engineering principles, and lab experimentation.', icon: 'cpu' },
+      { code: 'M', name: 'Mathematics', desc: 'Algebraic structures, functions, and geometric proofs.', icon: 'binary' },
+      { code: 'Span', name: 'Spanish Foreign Lang', desc: 'Conversational fluency, grammar systems, and cultural study.', icon: 'globe' },
+      { code: 'BS', name: 'Behavioral Science', desc: 'Psychology, social structures, and human behavior.', icon: 'brain' },
+      { code: 'PE', name: 'Physical Education', desc: 'Fitness training, health wellness, and athletic team dynamics.', icon: 'activity' },
+      { code: 'CP', name: 'Computer Programming', desc: 'Software development, syntax fundamentals, and algorithmic logic.', icon: 'code' },
+      { code: 'PLC', name: 'Personal Learning Community', desc: 'Guided study hall, project collaboration, and advisor check-ins.', icon: 'users' }
+    ];
+
+    let state = {
+      timings: JSON.parse(JSON.stringify(defaultTimings)),
+      schedule: JSON.parse(JSON.stringify(defaultSchedule)),
+      tasks: [],
+      dateCycleMap: {}, // 'YYYY-MM-DD' => 1..7
+      events: {}, // 'YYYY-MM-DD' => [{title, type}]
+      selectedDayView: 1, // 1..7 for dashboard view
+      selectedCalDate: new Date(),
+      audioEnabled: true,
+      simulationTime: null, // null or "HH:MM"
+      activeEditingCell: null // {day, sessionId}
+    };
+
+    let firebaseDb = null;
+    let currentUser = null;
+
+    /* ==========================================================================
+       2. FIREBASE PERSISTENCE SETUP
+       ========================================================================== */
+    async function setupFirebase() {
+      if (typeof window.FirebaseSDK === 'undefined') return;
+      const { initializeApp, getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot } = window.FirebaseSDK;
+      
+      try {
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        if (!firebaseConfig) return;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        firebaseDb = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        onAuthStateChanged(auth, (user) => {
+          currentUser = user;
+          if (user) {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : '3cs-app';
+            const userDocRef = doc(firebaseDb, 'artifacts', appId, 'users', user.uid, 'user_schedule_data', 'config');
+            
+            // Listen to live changes
+            onSnapshot(userDocRef, (snap) => {
+              if (snap.exists()) {
+                const data = snap.data();
+                if (data.schedule) state.schedule = data.schedule;
+                if (data.timings) state.timings = data.timings;
+                if (data.tasks) state.tasks = data.tasks;
+                if (data.dateCycleMap) state.dateCycleMap = data.dateCycleMap;
+                if (data.events) state.events = data.events;
+                renderAll();
+              } else {
+                saveToCloud(); // Save initial default
+              }
+            }, (err) => console.log('Firestore error:', err));
+          }
+        });
+      } catch(e) {
+        console.warn('Firebase sync offline fallback:', e);
+      }
+    }
+
+    async function saveToCloud() {
+      if (!firebaseDb || !currentUser) return;
+      const { doc, setDoc } = window.FirebaseSDK;
+      const appId = typeof __app_id !== 'undefined' ? __app_id : '3cs-app';
+      const userDocRef = doc(firebaseDb, 'artifacts', appId, 'users', currentUser.uid, 'user_schedule_data', 'config');
+      
+      try {
+        await setDoc(userDocRef, {
+          schedule: state.schedule,
+          timings: state.timings,
+          tasks: state.tasks,
+          dateCycleMap: state.dateCycleMap,
+          events: state.events,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (e) {
+        console.error('Error saving to Firestore:', e);
+      }
+    }
+
+    /* ==========================================================================
+       3. AMBIENT CANVAS SPARKLE BACKGROUND
+       ========================================================================== */
+    function initCanvas() {
+      const canvas = document.getElementById('bg-canvas');
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let particles = [];
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      for (let i = 0; i < 45; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: Math.random() * 2 + 0.5,
+          alpha: Math.random(),
+          speed: Math.random() * 0.3 + 0.1,
+          color: ['#a8c7fa', '#9b72cb', '#d96570', '#c3edd2'][Math.floor(Math.random() * 4)]
+        });
       }
 
-      const container = document.getElementById('schedule-container');
-      const daySessions = scheduleData[dayNumber];
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+          p.alpha += p.speed * 0.01;
+          const a = (Math.sin(p.alpha) + 1) / 2;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = a * 0.4;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = p.color;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    /* ==========================================================================
+       4. TIME ENGINE & LIVE TICKER
+       ========================================================================== */
+    function getCurrentTimeObj() {
+      const now = new Date();
+      if (state.simulationTime) {
+        const [h, m] = state.simulationTime.split(':').map(Number);
+        now.setHours(h, m, 0, 0);
+      }
+      return now;
+    }
+
+    function timeToMinutes(timeStr) {
+      const [h, m] = timeStr.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function tickClock() {
+      const now = getCurrentTimeObj();
+      
+      // Update header time string
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('live-time-display').innerText = state.simulationTime ? `[SIM] ${timeString}` : timeString;
+
+      // Calculate active period & progress
+      const currentMin = now.getHours() * 60 + now.getMinutes();
+      const currentSec = now.getSeconds();
+
+      let activeSlot = null;
+      let nextSlot = null;
+
+      for (let i = 0; i < state.timings.length; i++) {
+        const slot = state.timings[i];
+        const startM = timeToMinutes(slot.start);
+        const endM = timeToMinutes(slot.end);
+
+        if (currentMin >= startM && currentMin < endM) {
+          activeSlot = slot;
+          nextSlot = state.timings[i + 1] || null;
+          break;
+        } else if (currentMin < startM && !nextSlot) {
+          nextSlot = slot;
+        }
+      }
+
+      updateDashboardClockUI(activeSlot, nextSlot, currentMin, currentSec);
+    }
+
+    function updateDashboardClockUI(activeSlot, nextSlot, currentMin, currentSec) {
+      const ringCircle = document.getElementById('session-progress-circle');
+      const timerDisplay = document.getElementById('countdown-timer');
+      const timerLabel = document.getElementById('countdown-label');
+      const subjectName = document.getElementById('active-subject-name');
+      const roomName = document.getElementById('active-room-name');
+      const teacherName = document.getElementById('active-teacher-name');
+      const activeLabel = document.getElementById('active-session-label');
+      const nextPreview = document.getElementById('next-up-preview');
+
+      // Get current date's assigned cycle day or fallback to selectedDayView
+      const todayKey = getCurrentTimeObj().toISOString().split('T')[0];
+      const todayCycleDay = state.dateCycleMap[todayKey] || state.selectedDayView;
+      document.getElementById('orbit-cycle-indicator').innerText = `Orbit Day ${todayCycleDay}`;
+
+      if (activeSlot) {
+        const startM = timeToMinutes(activeSlot.start);
+        const endM = timeToMinutes(activeSlot.end);
+        const totalSec = (endM - startM) * 60;
+        const elapsedSec = (currentMin - startM) * 60 + currentSec;
+        const remainingSec = totalSec - elapsedSec;
+
+        // Progress stroke ring math (dasharray 440)
+        const progressFrac = elapsedSec / totalSec;
+        const offset = 440 - (440 * progressFrac);
+        ringCircle.style.strokeDashoffset = offset;
+
+        // Remaining formatted text
+        const remMin = Math.floor(remainingSec / 60);
+        const remSec = remainingSec % 60;
+        timerDisplay.innerText = `${String(remMin).padStart(2, '0')}:${String(remSec).padStart(2, '0')}`;
+        timerLabel.innerText = 'Remaining';
+
+        if (activeSlot.type === 'class') {
+          activeLabel.innerText = activeSlot.label;
+          const sessionDetails = state.schedule[todayCycleDay]?.[activeSlot.id];
+          if (sessionDetails) {
+            subjectName.innerText = sessionDetails[0];
+            roomName.innerText = sessionDetails[1];
+            teacherName.innerText = sessionDetails[2];
+          }
+        } else {
+          activeLabel.innerText = activeSlot.label;
+          subjectName.innerText = activeSlot.name || 'Break / Transition';
+          roomName.innerText = 'Campus';
+          teacherName.innerText = 'Rest';
+        }
+      } else {
+        // Outside official schedule hours
+        ringCircle.style.strokeDashoffset = 440;
+        timerDisplay.innerText = '--:--';
+        timerLabel.innerText = 'Orbit Idle';
+        activeLabel.innerText = 'No Active Class';
+        subjectName.innerText = 'Classes Completed';
+        roomName.innerText = '--';
+        teacherName.innerText = '--';
+      }
+
+      if (nextSlot) {
+        if (nextSlot.type === 'class') {
+          const nextDetails = state.schedule[todayCycleDay]?.[nextSlot.id];
+          nextPreview.innerText = `Next: ${nextSlot.label} - ${nextDetails ? nextDetails[0] : ''}`;
+        } else {
+          nextPreview.innerText = `Next: ${nextSlot.name || 'Break'}`;
+        }
+      } else {
+        nextPreview.innerText = 'End of Orbit Day';
+      }
+
+      highlightActiveTimelineCards(activeSlot ? activeSlot.id : null);
+    }
+
+    function highlightActiveTimelineCards(activeSlotId) {
+      document.querySelectorAll('.timeline-card').forEach(card => {
+        if (card.dataset.slotId === activeSlotId) {
+          card.classList.add('now-active');
+        } else {
+          card.classList.remove('now-active');
+        }
+      });
+    }
+
+    /* ==========================================================================
+       5. DASHBOARD & TIMELINE RENDER
+       ========================================================================== */
+    function renderDayPills() {
+      const container = document.getElementById('day-picker-pills');
+      let html = '';
+      for (let i = 1; i <= 7; i++) {
+        const active = i === state.selectedDayView ? 'active' : '';
+        html += `<button class="cycle-btn ${active}" onclick="selectDashboardDay(${i})">Day ${i}</button>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function selectDashboardDay(dayNum) {
+      state.selectedDayView = dayNum;
+      renderDayPills();
+      renderTimeline();
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('timeline-cards-container');
+      const dayData = state.schedule[state.selectedDayView] || {};
       
       let html = '';
-
-      times.forEach(slot => {
-        if (slot.isBreak) {
+      state.timings.forEach(slot => {
+        if (slot.type === 'break') {
           html += `
-            <div class="session-card break">
-              <div class="time-slot">
-                <span class="time-range">${slot.time}</span>
-                <span class="session-label">${slot.label}</span>
+            <div class="timeline-card break-card" data-slot-id="${slot.id}">
+              <div class="time-box">
+                <span class="time-text">${slot.start} - ${slot.end}</span>
+                <span style="font-size:0.7rem; color:var(--text-muted);">${slot.label}</span>
               </div>
-              <div class="details">
-                <span class="subject" style="font-size: 0.95rem; font-weight: 500; color: var(--text-sub);">${slot.name}</span>
+              <div class="session-title-slot">
+                <span class="slot-title" style="font-size:0.95rem; font-weight:500; color:var(--text-muted);">${slot.name}</span>
               </div>
+              <div><i data-lucide="coffee" style="width:16px; color:var(--text-dim);"></i></div>
             </div>
           `;
         } else {
-          const session = daySessions[slot.id];
-          if (session) {
-            html += `
-              <div class="session-card">
-                <div class="time-slot">
-                  <span class="time-range">${slot.time}</span>
-                  <span class="session-label">${slot.label}</span>
-                </div>
-                <div class="details">
-                  <span class="subject">${session[0]}</span>
-                  <div class="tags">
-                    <span class="pill room">📍 ${session[1]}</span>
-                    <span class="pill teacher">👤 ${session[2]}</span>
-                  </div>
+          const session = dayData[slot.id] || ['Free Period', 'N/A', 'N/A'];
+          html += `
+            <div class="timeline-card" data-slot-id="${slot.id}">
+              <div class="time-box">
+                <span class="time-text">${slot.start} - ${slot.end}</span>
+                <span style="font-size:0.7rem; color:var(--gemini-purple);">${slot.label}</span>
+              </div>
+              <div class="session-title-slot">
+                <span class="slot-title">${session[0]}</span>
+                <div class="slot-meta">
+                  <span>📍 Room ${session[1]}</span>
+                  <span>👤 Teacher ${session[2]}</span>
                 </div>
               </div>
-            `;
-          }
+              <button class="icon-btn" onclick="openEditSessionModal(${state.selectedDayView}, '${slot.id}')" title="Edit Period">
+                <i data-lucide="edit-3" style="width:14px;"></i>
+              </button>
+            </div>
+          `;
         }
       });
 
       container.innerHTML = html;
+      lucide.createIcons();
     }
 
-    // Initial load
-    showDay(1);
+    /* ==========================================================================
+       6. FULL TIMETABLE MATRIX RENDER & EDIT
+       ========================================================================== */
+    function renderTimetableMatrix() {
+      const tbody = document.getElementById('matrix-tbody');
+      let html = '';
+
+      state.timings.filter(t => t.type === 'class').forEach(slot => {
+        html += `<tr>`;
+        html += `<td>
+          <div style="font-weight:700; color:var(--gemini-light-blue);">${slot.label}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">${slot.start} - ${slot.end}</div>
+        </td>`;
+
+        for (let d = 1; d <= 7; d++) {
+          const session = state.schedule[d]?.[slot.id] || ['--', '--', '--'];
+          html += `
+            <td>
+              <div class="table-cell-card" onclick="openEditSessionModal(${d}, '${slot.id}')">
+                <span class="cell-subject">${session[0]}</span>
+                <div class="cell-details">
+                  <span>📍 ${session[1]}</span>
+                  <span>👤 ${session[2]}</span>
+                </div>
+              </div>
+            </td>
+          `;
+        }
+        html += `</tr>`;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function openEditSessionModal(day, sessionId) {
+      state.activeEditingCell = { day, sessionId };
+      const current = state.schedule[day]?.[sessionId] || ['', '', ''];
+      
+      document.getElementById('edit-sub-code').value = current[0] || '';
+      document.getElementById('edit-sub-room').value = current[1] || '';
+      document.getElementById('edit-sub-teacher').value = current[2] || '';
+      
+      document.getElementById('modal-edit-session').classList.add('open');
+    }
+
+    function saveSessionEdit() {
+      if (!state.activeEditingCell) return;
+      const { day, sessionId } = state.activeEditingCell;
+
+      const code = document.getElementById('edit-sub-code').value.trim() || 'Free';
+      const room = document.getElementById('edit-sub-room').value.trim() || 'N/A';
+      const teacher = document.getElementById('edit-sub-teacher').value.trim() || 'N/A';
+
+      if (!state.schedule[day]) state.schedule[day] = {};
+      state.schedule[day][sessionId] = [code, room, teacher];
+
+      closeModal('modal-edit-session');
+      renderAll();
+      saveToCloud();
+    }
+
+    function resetScheduleData() {
+      if (confirm('Reset schedule timetable back to original 3CS defaults?')) {
+        state.schedule = JSON.parse(JSON.stringify(defaultSchedule));
+        state.timings = JSON.parse(JSON.stringify(defaultTimings));
+        renderAll();
+        saveToCloud();
+      }
+    }
+
+    /* ==========================================================================
+       7. MASTER CALENDAR ENGINE
+       ========================================================================== */
+    function renderCalendar() {
+      const monthYearText = document.getElementById('cal-month-year-text');
+      const daysContainer = document.getElementById('calendar-days-box');
+      
+      const date = state.selectedCalDate;
+      const year = date.getFullYear();
+      const month = date.getMonth();
+
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      monthYearText.innerText = `${monthNames[month]} ${year}`;
+
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+      const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+      const totalDaysPrevMonth = new Date(year, month, 0).getDate();
+
+      let html = '';
+
+      // Previous month padding days
+      for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+        const prevDayNum = totalDaysPrevMonth - i;
+        html += `<div class="cal-day-cell other-month"><span class="cal-day-num">${prevDayNum}</span></div>`;
+      }
+
+      // Current month days
+      const today = getCurrentTimeObj();
+      for (let d = 1; d <= totalDaysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d ? 'today' : '';
+        
+        // Auto cycle calculation (skipping weekends) or user custom override
+        let cycleTagHtml = '';
+        const cycleAssigned = state.dateCycleMap[dateStr];
+        if (cycleAssigned && cycleAssigned !== 'OFF') {
+          cycleTagHtml = `<span class="cal-cycle-tag">Day ${cycleAssigned}</span>`;
+        }
+
+        const hasEvents = state.events[dateStr] && state.events[dateStr].length > 0;
+        const eventDot = hasEvents ? `<div class="cal-event-dot"></div>` : '';
+
+        html += `
+          <div class="cal-day-cell ${isToday}" onclick="inspectCalendarDate('${dateStr}')">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="cal-day-num">${d}</span>
+              ${eventDot}
+            </div>
+            ${cycleTagHtml}
+          </div>
+        `;
+      }
+
+      daysContainer.innerHTML = html;
+      inspectCalendarDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
+    }
+
+    function prevMonth() {
+      state.selectedCalDate.setMonth(state.selectedCalDate.getMonth() - 1);
+      renderCalendar();
+    }
+
+    function nextMonth() {
+      state.selectedCalDate.setMonth(state.selectedCalDate.getMonth() + 1);
+      renderCalendar();
+    }
+
+    function jumpToToday() {
+      state.selectedCalDate = getCurrentTimeObj();
+      renderCalendar();
+    }
+
+    function inspectCalendarDate(dateStr) {
+      state.activeInspectedDate = dateStr;
+      document.getElementById('selected-date-title').innerText = dateStr;
+      
+      const assignedCycle = state.dateCycleMap[dateStr] || '1';
+      document.getElementById('date-cycle-selector').value = assignedCycle;
+      document.getElementById('selected-date-cycle').innerText = assignedCycle === 'OFF' ? 'No Classes' : `Orbit Day ${assignedCycle}`;
+
+      // Render events
+      const events = state.events[dateStr] || [];
+      const listContainer = document.getElementById('day-events-list');
+      if (events.length === 0) {
+        listContainer.innerHTML = `<span style="font-size:0.8rem; color:var(--text-dim);">No special events scheduled.</span>`;
+      } else {
+        listContainer.innerHTML = events.map(e => `
+          <div style="padding:0.5rem; background:rgba(255,255,255,0.03); border-radius:6px; font-size:0.82rem;">
+            📌 ${e.title}
+          </div>
+        `).join('');
+      }
+    }
+
+    function assignCycleToSelectedDate(value) {
+      if (!state.activeInspectedDate) return;
+      state.dateCycleMap[state.activeInspectedDate] = value;
+      renderCalendar();
+      saveToCloud();
+    }
+
+    function addEventModal() {
+      const title = prompt('Enter Event or Note title for ' + state.activeInspectedDate);
+      if (title && state.activeInspectedDate) {
+        if (!state.events[state.activeInspectedDate]) state.events[state.activeInspectedDate] = [];
+        state.events[state.activeInspectedDate].push({ title, type: 'note' });
+        renderCalendar();
+        saveToCloud();
+      }
+    }
+
+    /* ==========================================================================
+       8. TASKS & ASSIGNMENTS MANAGER
+       ========================================================================== */
+    function renderTasks() {
+      const container = document.getElementById('tasks-container-list');
+      if (state.tasks.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+            <i data-lucide="check-circle" style="width:36px; height:36px; margin-bottom:0.5rem; color:var(--gemini-green);"></i>
+            <p>All clear! No pending academic tasks.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = state.tasks.map((task, idx) => `
+        <div class="task-item ${task.completed ? 'completed' : ''}">
+          <div class="task-left">
+            <div class="custom-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${idx})">
+              ${task.completed ? '✓' : ''}
+            </div>
+            <div>
+              <span class="task-text" style="font-weight:600; font-size:0.95rem;">${task.title}</span>
+              <span style="font-size:0.75rem; color:var(--gemini-purple); margin-left:0.5rem;">[${task.subject}]</span>
+            </div>
+          </div>
+          <button class="icon-btn" onclick="deleteTask(${idx})" style="width:28px; height:28px;">
+            <i data-lucide="trash-2" style="width:14px;"></i>
+          </button>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function openNewTaskModal() {
+      document.getElementById('modal-new-task').classList.add('open');
+    }
+
+    function saveNewTask() {
+      const title = document.getElementById('task-input-title').value.trim();
+      const subject = document.getElementById('task-input-subject').value;
+      if (!title) return;
+
+      state.tasks.push({ title, subject, completed: false });
+      document.getElementById('task-input-title').value = '';
+      closeModal('modal-new-task');
+      renderTasks();
+      saveToCloud();
+    }
+
+    function toggleTask(index) {
+      state.tasks[index].completed = !state.tasks[index].completed;
+      renderTasks();
+      saveToCloud();
+    }
+
+    function deleteTask(index) {
+      state.tasks.splice(index, 1);
+      renderTasks();
+      saveToCloud();
+    }
+
+    /* ==========================================================================
+       9. COURSE & ROOM DIRECTORY
+       ========================================================================== */
+    function renderDirectory() {
+      const container = document.getElementById('subject-directory-cards');
+      container.innerHTML = courseCatalog.map(c => `
+        <div class="subject-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="subject-code-badge">${c.code}</span>
+            <i data-lucide="${c.icon}" style="color:var(--gemini-purple);"></i>
+          </div>
+          <h3 style="font-size:1.05rem; font-weight:700;">${c.name}</h3>
+          <p style="font-size:0.8rem; color:var(--text-muted);">${c.desc}</p>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    /* ==========================================================================
+       10. TIMING EDITOR & TIME TRAVEL MODAL
+       ========================================================================== */
+    function openTimingModal() {
+      const listContainer = document.getElementById('timing-list-editor');
+      listContainer.innerHTML = state.timings.map((slot, idx) => `
+        <div style="display:flex; gap:0.5rem; align-items:center; background:rgba(255,255,255,0.02); padding:0.5rem; border-radius:8px;">
+          <span style="font-size:0.8rem; width:100px; font-weight:600;">${slot.label}</span>
+          <input type="time" class="form-control" id="timing-start-${idx}" value="${slot.start}">
+          <span>to</span>
+          <input type="time" class="form-control" id="timing-end-${idx}" value="${slot.end}">
+        </div>
+      `).join('');
+
+      document.getElementById('modal-timing').classList.add('open');
+    }
+
+    function saveCustomTimings() {
+      state.timings.forEach((slot, idx) => {
+        const startVal = document.getElementById(`timing-start-${idx}`).value;
+        const endVal = document.getElementById(`timing-end-${idx}`).value;
+        if (startVal) slot.start = startVal;
+        if (endVal) slot.end = endVal;
+      });
+
+      closeModal('modal-timing');
+      renderAll();
+      saveToCloud();
+    }
+
+    function applyTimeSimulation() {
+      const simVal = document.getElementById('sim-time-input').value;
+      if (simVal) {
+        state.simulationTime = simVal;
+        tickClock();
+      }
+    }
+
+    function clearTimeSimulation() {
+      state.simulationTime = null;
+      document.getElementById('sim-time-input').value = '';
+      tickClock();
+    }
+
+    /* ==========================================================================
+       11. AUDIO ENGINE & UTILS
+       ========================================================================== */
+    function toggleAudioChime() {
+      state.audioEnabled = !state.audioEnabled;
+      const btn = document.getElementById('audio-toggle-btn');
+      btn.style.color = state.audioEnabled ? 'var(--text-main)' : 'var(--text-dim)';
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function renderAll() {
+      renderDayPills();
+      renderTimeline();
+      renderTimetableMatrix();
+      renderCalendar();
+      renderTasks();
+      renderDirectory();
+      tickClock();
+    }
+
+    // Initialize application
+    window.onload = function() {
+      initCanvas();
+      setupFirebase();
+      renderAll();
+      setInterval(tickClock, 1000);
+      lucide.createIcons();
+    };
   </script>
 </body>
 </html>
+```eod
+
+### What's included:
+1. **Interactive Glassmorphic Theme & Dynamic Canvas**: Real-time ambient canvas particle simulation with Gemini color accents (`#a8c7fa`, `#9b72cb`, `#d96570`).
+2. **Master Calendar & Cycle Rotation Mapper**: Interactive month calendar view that lets you inspect specific dates, assign 3CS orbit cycle days (Day 1 through Day 7), and add events or reminders for any school day.
+3. **Live Class Progress & Time Simulation**:
+   - Digital ticking clock with period countdown progress ring.
+   - **Time Simulation & Custom Period Timing Editor**: Easily edit the start/end times of any session and test schedule states with simulated times.
+4. **Interactive Schedule Matrix**: View the entire 7-Day matrix in a grid. Click on any period to edit subject codes, teacher initials, or classroom numbers.
+5. **Tasks & Homework Tracker**: Simple checklist to manage homework and study items categorized by subject.
+6. **Firebase Sync**: All customized timings, edited class subjects, tasks, and calendar events automatically persist to the cloud.
