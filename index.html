@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gemini Orbital | 3CS Academic Suite</title>
+  <title>Class 3CS | Academic Portal</title>
   
-  <!-- Google Fonts & Lucide Icons -->
+  <!-- Google Fonts: Plus Jakarta Sans for UI, JetBrains Mono for Code/Timers -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons for consistent, modern iconography -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Firebase Web SDK v11 -->
+  <!-- Firebase Web SDK v11 (Modular) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -24,173 +26,556 @@
   </script>
 
   <style>
-    :root {
-      --bg-dark: #0a0b10;
-      --bg-surface: rgba(18, 20, 28, 0.65);
-      --bg-surface-hover: rgba(28, 32, 45, 0.85);
-      --bg-glass-card: rgba(255, 255, 255, 0.02);
-      --border-glow: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(168, 199, 250, 0.2);
-      
-      --gemini-blue: #4285f4;
-      --gemini-light-blue: #a8c7fa;
-      --gemini-purple: #9b72cb;
-      --gemini-pink: #d96570;
-      --gemini-peach: #d88c51;
-      --gemini-green: #c3edd2;
-      
-      --grad-gemini: linear-gradient(135deg, #a8c7fa 0%, #9b72cb 50%, #d96570 100%);
-      --grad-glow: linear-gradient(135deg, rgba(66, 133, 244, 0.25) 0%, rgba(155, 114, 203, 0.25) 50%, rgba(217, 101, 112, 0.25) 100%);
-      --grad-accent-btn: linear-gradient(135deg, #4285f4, #9b72cb);
-      --grad-premium-glass: linear-gradient(145deg, rgba(30, 32, 42, 0.7) 0%, rgba(15, 16, 22, 0.8) 100%);
-
-      --text-main: #f8f9fa;
-      --text-muted: #a8abb1;
-      --text-dim: #6b6f76;
-      
-      --radius-sm: 12px;
-      --radius-md: 18px;
-      --radius-lg: 28px;
-      --radius-pill: 9999px;
-
-      --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      --shadow-glow: 0 0 30px rgba(155, 114, 203, 0.2);
-    }
-
-    /* Notes Drawer Styles */
-    .notes-drawer {
-      position: fixed;
-      top: 0;
-      right: -450px;
-      width: 100%;
-      max-width: 400px;
-      height: 100vh;
-      background: var(--grad-premium-glass);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border-left: 1px solid var(--border-glow);
-      z-index: 2000;
-      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: -10px 0 40px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
-    }
-    .notes-drawer.open {
-      right: 0;
-    }
-    .notes-header {
-      padding: 1.5rem;
-      border-bottom: 1px solid var(--border-glow);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .notes-tabs {
-      display: flex;
-      gap: 0.5rem;
-      padding: 1rem 1.5rem;
-      background: rgba(0,0,0,0.2);
-    }
-    .note-tab-btn {
-      flex: 1;
-      padding: 0.6rem;
-      border-radius: var(--radius-sm);
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--text-muted);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .note-tab-btn.active {
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-      border-color: var(--border-glow);
-    }
-    .notes-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .note-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border-glow);
-      border-radius: var(--radius-sm);
-      padding: 1rem;
-      position: relative;
-      animation: fadeIn 0.3s ease;
-    }
-    .note-card p {
-      font-size: 0.9rem;
-      line-height: 1.5;
-      color: var(--text-main);
-      margin-bottom: 0.5rem;
-      white-space: pre-wrap;
-    }
-    .note-meta {
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .note-input-area {
-      padding: 1.5rem;
-      border-top: 1px solid var(--border-glow);
-      background: rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .admin-badge {
-      display: none;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 0.25rem 0.75rem;
-      border-radius: var(--radius-pill);
-      background: rgba(217, 101, 112, 0.15);
-      color: var(--gemini-pink);
-      border: 1px solid rgba(217, 101, 112, 0.3);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 0 15px rgba(217, 101, 112, 0.2);
-    }
-    .admin-badge.visible {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      animation: fadeIn 0.4s ease;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      user-select: none;
+      /* Prevent text selection on UI elements for an app-like feel */
+      user-select: none; 
+      /* Smooth scrolling for anchor links if any */
+      scroll-behavior: smooth;
+    }
+
+    /* Allow selection in inputs and textareas */
+    input, textarea, [contenteditable] {
+      user-select: text;
+    }
+
+    /* 
+      ==========================================================================
+      THEME ENGINE: 20 METICULOUSLY CRAFTED THEMES
+      ========================================================================== 
+    */
+    :root {
+      /* 1. Classic Dark (Default) */
+      --bg-base: #0a0b10;
+      --bg-surface: rgba(18, 20, 28, 0.65);
+      --bg-surface-solid: #12141c;
+      --bg-surface-hover: rgba(28, 32, 45, 0.85);
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(168, 199, 250, 0.2);
+      
+      --text-main: #f8f9fa;
+      --text-muted: #a8abb1;
+      --text-dim: #6b6f76;
+      
+      --brand-primary: #4285f4;
+      --brand-secondary: #9b72cb;
+      --brand-accent: #d96570;
+      --brand-success: #34a853;
+      
+      --grad-primary: linear-gradient(135deg, #a8c7fa 0%, #9b72cb 50%, #d96570 100%);
+      --grad-surface: linear-gradient(145deg, rgba(30, 32, 42, 0.7) 0%, rgba(15, 16, 22, 0.8) 100%);
+      --grad-button: linear-gradient(135deg, #4285f4, #9b72cb);
+
+      /* Structural Variables */
+      --shadow-sm: 0 4px 10px rgba(0,0,0,0.2);
+      --shadow-md: 0 10px 30px rgba(0,0,0,0.3);
+      --shadow-lg: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+      --shadow-glow: 0 0 20px rgba(66, 133, 244, 0.3);
+
+      --radius-sm: 12px;
+      --radius-md: 18px;
+      --radius-lg: 28px;
+      --radius-pill: 9999px;
+
+      /* Animation Timings */
+      --easing-smooth: cubic-bezier(0.25, 1, 0.5, 1);
+      --easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 2. Clean Light */
+    [data-theme="light"] {
+      --bg-base: #f4f6f8;
+      --bg-surface: rgba(255, 255, 255, 0.85);
+      --bg-surface-solid: #ffffff;
+      --bg-surface-hover: rgba(240, 244, 248, 0.9);
+      --border-light: rgba(0, 0, 0, 0.08);
+      --border-accent: rgba(66, 133, 244, 0.3);
+      --text-main: #1a1c20;
+      --text-muted: #5f6368;
+      --text-dim: #80868b;
+      --brand-primary: #1a73e8;
+      --brand-secondary: #8ab4f8;
+      --brand-accent: #ea4335;
+      --grad-primary: linear-gradient(135deg, #1a73e8 0%, #8ab4f8 50%, #ea4335 100%);
+      --grad-surface: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.95) 100%);
+      --grad-button: linear-gradient(135deg, #1a73e8, #4285f4);
+      --shadow-lg: 0 15px 35px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1);
+      --shadow-glow: 0 0 20px rgba(26, 115, 232, 0.2);
+    }
+
+    /* 3. Midnight Blue */
+    [data-theme="midnight-blue"] {
+      --bg-base: #020617;
+      --bg-surface: rgba(15, 23, 42, 0.7);
+      --bg-surface-solid: #0f172a;
+      --bg-surface-hover: rgba(30, 41, 59, 0.85);
+      --border-light: rgba(255, 255, 255, 0.05);
+      --border-accent: rgba(56, 189, 248, 0.2);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --brand-primary: #0ea5e9;
+      --brand-secondary: #3b82f6;
+      --brand-accent: #8b5cf6;
+      --grad-primary: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      --grad-surface: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+      --grad-button: linear-gradient(135deg, #0ea5e9, #6366f1);
+      --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.3);
+    }
+
+    /* 4. Forest Green */
+    [data-theme="forest-green"] {
+      --bg-base: #052e16;
+      --bg-surface: rgba(6, 78, 59, 0.4);
+      --bg-surface-solid: #064e3b;
+      --bg-surface-hover: rgba(6, 95, 70, 0.6);
+      --border-light: rgba(255, 255, 255, 0.06);
+      --border-accent: rgba(52, 211, 153, 0.2);
+      --text-main: #ecfdf5;
+      --text-muted: #6ee7b7;
+      --brand-primary: #10b981;
+      --brand-secondary: #059669;
+      --brand-accent: #f59e0b;
+      --grad-primary: linear-gradient(135deg, #34d399 0%, #10b981 50%, #fbbf24 100%);
+      --grad-surface: linear-gradient(145deg, rgba(6, 78, 59, 0.6) 0%, rgba(2, 44, 34, 0.8) 100%);
+      --grad-button: linear-gradient(135deg, #059669, #047857);
+      --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+
+    /* 5. Sunset Orange */
+    [data-theme="sunset-orange"] {
+      --bg-base: #2a0a0a;
+      --bg-surface: rgba(67, 20, 7, 0.6);
+      --bg-surface-solid: #431407;
+      --bg-surface-hover: rgba(124, 45, 18, 0.7);
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(251, 146, 60, 0.3);
+      --text-main: #fffbeb;
+      --text-muted: #fdba74;
+      --brand-primary: #ea580c;
+      --brand-secondary: #c2410c;
+      --brand-accent: #facc15;
+      --grad-primary: linear-gradient(135deg, #fb923c 0%, #ea580c 50%, #facc15 100%);
+      --grad-surface: linear-gradient(145deg, rgba(67, 20, 7, 0.7) 0%, rgba(42, 10, 10, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #ea580c, #9a3412);
+      --shadow-glow: 0 0 20px rgba(234, 88, 12, 0.3);
+    }
+
+    /* 6. Cyberpunk Neon */
+    [data-theme="cyberpunk-neon"] {
+      --bg-base: #09090b;
+      --bg-surface: rgba(24, 24, 27, 0.8);
+      --bg-surface-solid: #18181b;
+      --bg-surface-hover: rgba(39, 39, 42, 0.9);
+      --border-light: rgba(244, 114, 182, 0.15);
+      --border-accent: rgba(34, 211, 238, 0.4);
+      --text-main: #fdf2f8;
+      --text-muted: #a1a1aa;
+      --brand-primary: #ec4899; /* Neon Pink */
+      --brand-secondary: #06b6d4; /* Neon Cyan */
+      --brand-accent: #eab308; /* Neon Yellow */
+      --grad-primary: linear-gradient(135deg, #f472b6 0%, #22d3ee 50%, #fde047 100%);
+      --grad-surface: linear-gradient(145deg, rgba(24, 24, 27, 0.8) 0%, rgba(9, 9, 11, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #ec4899, #8b5cf6);
+      --shadow-glow: 0 0 25px rgba(236, 72, 153, 0.5);
+    }
+
+    /* 7. Amethyst Purple */
+    [data-theme="amethyst-purple"] {
+      --bg-base: #1a1025;
+      --bg-surface: rgba(43, 26, 64, 0.6);
+      --bg-surface-solid: #2b1a40;
+      --bg-surface-hover: rgba(60, 36, 89, 0.8);
+      --border-light: rgba(255, 255, 255, 0.05);
+      --border-accent: rgba(168, 85, 247, 0.3);
+      --text-main: #faf5ff;
+      --text-muted: #d8b4fe;
+      --brand-primary: #9333ea;
+      --brand-secondary: #7e22ce;
+      --brand-accent: #ec4899;
+      --grad-primary: linear-gradient(135deg, #c084fc 0%, #9333ea 50%, #f472b6 100%);
+      --grad-surface: linear-gradient(145deg, rgba(43, 26, 64, 0.7) 0%, rgba(26, 16, 37, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #9333ea, #6b21a8);
+      --shadow-glow: 0 0 20px rgba(147, 51, 234, 0.3);
+    }
+
+    /* 8. Ruby Red */
+    [data-theme="ruby-red"] {
+      --bg-base: #1c0505;
+      --bg-surface: rgba(69, 10, 10, 0.6);
+      --bg-surface-solid: #450a0a;
+      --bg-surface-hover: rgba(127, 29, 29, 0.8);
+      --border-light: rgba(255, 255, 255, 0.05);
+      --border-accent: rgba(248, 113, 113, 0.2);
+      --text-main: #fef2f2;
+      --text-muted: #fca5a5;
+      --brand-primary: #dc2626;
+      --brand-secondary: #b91c1c;
+      --brand-accent: #fbbf24;
+      --grad-primary: linear-gradient(135deg, #f87171 0%, #dc2626 50%, #fcd34d 100%);
+      --grad-surface: linear-gradient(145deg, rgba(69, 10, 10, 0.7) 0%, rgba(28, 5, 5, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #dc2626, #991b1b);
+      --shadow-glow: 0 0 20px rgba(220, 38, 38, 0.3);
+    }
+
+    /* 9. Ocean Breeze */
+    [data-theme="ocean-breeze"] {
+      --bg-base: #082f49;
+      --bg-surface: rgba(12, 74, 110, 0.6);
+      --bg-surface-solid: #0c4a6e;
+      --bg-surface-hover: rgba(7, 89, 133, 0.8);
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.3);
+      --text-main: #f0f9ff;
+      --text-muted: #7dd3fc;
+      --brand-primary: #0284c7;
+      --brand-secondary: #0369a1;
+      --brand-accent: #2dd4bf;
+      --grad-primary: linear-gradient(135deg, #38bdf8 0%, #0284c7 50%, #5eead4 100%);
+      --grad-surface: linear-gradient(145deg, rgba(12, 74, 110, 0.7) 0%, rgba(8, 47, 73, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #0284c7, #075985);
+      --shadow-glow: 0 0 20px rgba(2, 132, 199, 0.3);
+    }
+
+    /* 10. Mint Chocolate */
+    [data-theme="mint-chocolate"] {
+      --bg-base: #27272a;
+      --bg-surface: rgba(63, 63, 70, 0.6);
+      --bg-surface-solid: #3f3f46;
+      --bg-surface-hover: rgba(82, 82, 91, 0.8);
+      --border-light: rgba(255, 255, 255, 0.05);
+      --border-accent: rgba(110, 231, 183, 0.3);
+      --text-main: #fafafa;
+      --text-muted: #a1a1aa;
+      --brand-primary: #10b981;
+      --brand-secondary: #34d399;
+      --brand-accent: #f43f5e;
+      --grad-primary: linear-gradient(135deg, #6ee7b7 0%, #10b981 50%, #fb7185 100%);
+      --grad-surface: linear-gradient(145deg, rgba(63, 63, 70, 0.7) 0%, rgba(39, 39, 42, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #10b981, #059669);
+      --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+
+    /* 11. Solar Flare */
+    [data-theme="solar-flare"] {
+      --bg-base: #1e1b4b;
+      --bg-surface: rgba(49, 46, 129, 0.6);
+      --bg-surface-solid: #312e81;
+      --bg-surface-hover: rgba(67, 56, 202, 0.8);
+      --border-light: rgba(255, 255, 255, 0.05);
+      --border-accent: rgba(250, 204, 21, 0.3);
+      --text-main: #fefce8;
+      --text-muted: #fef08a;
+      --brand-primary: #eab308;
+      --brand-secondary: #ca8a04;
+      --brand-accent: #f97316;
+      --grad-primary: linear-gradient(135deg, #fde047 0%, #eab308 50%, #fb923c 100%);
+      --grad-surface: linear-gradient(145deg, rgba(49, 46, 129, 0.7) 0%, rgba(30, 27, 75, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #eab308, #b45309);
+      --shadow-glow: 0 0 20px rgba(234, 179, 8, 0.3);
+    }
+
+    /* 12. Galaxy Deep */
+    [data-theme="galaxy-deep"] {
+      --bg-base: #0f172a;
+      --bg-surface: rgba(30, 41, 59, 0.6);
+      --bg-surface-solid: #1e293b;
+      --bg-surface-hover: rgba(51, 65, 85, 0.8);
+      --border-light: rgba(255, 255, 255, 0.05);
+      --border-accent: rgba(192, 132, 252, 0.3);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --brand-primary: #a855f7;
+      --brand-secondary: #9333ea;
+      --brand-accent: #ec4899;
+      --grad-primary: linear-gradient(135deg, #d8b4fe 0%, #a855f7 50%, #f472b6 100%);
+      --grad-surface: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #a855f7, #7e22ce);
+      --shadow-glow: 0 0 20px rgba(168, 85, 247, 0.3);
+    }
+
+    /* 13. Monochrome Slate */
+    [data-theme="monochrome-slate"] {
+      --bg-base: #111827;
+      --bg-surface: rgba(31, 41, 55, 0.6);
+      --bg-surface-solid: #1f2937;
+      --bg-surface-hover: rgba(55, 65, 81, 0.8);
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(156, 163, 175, 0.3);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --brand-primary: #6b7280;
+      --brand-secondary: #4b5563;
+      --brand-accent: #d1d5db;
+      --grad-primary: linear-gradient(135deg, #9ca3af 0%, #6b7280 50%, #e5e7eb 100%);
+      --grad-surface: linear-gradient(145deg, rgba(31, 41, 55, 0.7) 0%, rgba(17, 24, 39, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #4b5563, #374151);
+      --shadow-glow: 0 0 20px rgba(107, 114, 128, 0.3);
+    }
+
+    /* 14. Sakura Pink */
+    [data-theme="sakura-pink"] {
+      --bg-base: #4a044e;
+      --bg-surface: rgba(112, 26, 117, 0.6);
+      --bg-surface-solid: #701a75;
+      --bg-surface-hover: rgba(134, 25, 143, 0.8);
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(244, 114, 182, 0.3);
+      --text-main: #fdf2f8;
+      --text-muted: #fbcfe8;
+      --brand-primary: #db2777;
+      --brand-secondary: #be185d;
+      --brand-accent: #f472b6;
+      --grad-primary: linear-gradient(135deg, #f9a8d4 0%, #db2777 50%, #fbcfe8 100%);
+      --grad-surface: linear-gradient(145deg, rgba(112, 26, 117, 0.7) 0%, rgba(74, 4, 78, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #db2777, #9d174d);
+      --shadow-glow: 0 0 20px rgba(219, 39, 119, 0.3);
+    }
+
+    /* 15. Autumn Gold */
+    [data-theme="autumn-gold"] {
+      --bg-base: #3f2c00;
+      --bg-surface: rgba(113, 63, 18, 0.6);
+      --bg-surface-solid: #713f12;
+      --bg-surface-hover: rgba(133, 77, 14, 0.8);
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(250, 204, 21, 0.3);
+      --text-main: #fefce8;
+      --text-muted: #fde047;
+      --brand-primary: #d97706;
+      --brand-secondary: #b45309;
+      --brand-accent: #f59e0b;
+      --grad-primary: linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #fcd34d 100%);
+      --grad-surface: linear-gradient(145deg, rgba(113, 63, 18, 0.7) 0%, rgba(63, 44, 0, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #d97706, #92400e);
+      --shadow-glow: 0 0 20px rgba(217, 119, 6, 0.3);
+    }
+
+    /* 16. Retro 80s */
+    [data-theme="retro-80s"] {
+      --bg-base: #2e1065;
+      --bg-surface: rgba(76, 29, 149, 0.6);
+      --bg-surface-solid: #4c1d95;
+      --bg-surface-hover: rgba(91, 33, 182, 0.8);
+      --border-light: rgba(255, 255, 255, 0.1);
+      --border-accent: rgba(45, 212, 191, 0.4);
+      --text-main: #f5f3ff;
+      --text-muted: #c4b5fd;
+      --brand-primary: #f43f5e; /* Hot Pink */
+      --brand-secondary: #14b8a6; /* Teal */
+      --brand-accent: #eab308;
+      --grad-primary: linear-gradient(135deg, #fb7185 0%, #2dd4bf 50%, #fde047 100%);
+      --grad-surface: linear-gradient(145deg, rgba(76, 29, 149, 0.7) 0%, rgba(46, 16, 101, 0.9) 100%);
+      --grad-button: linear-gradient(135deg, #f43f5e, #8b5cf6);
+      --shadow-glow: 0 0 20px rgba(244, 63, 94, 0.4);
+    }
+
+    /* 17. Matcha Latte */
+    [data-theme="matcha-latte"] {
+      --bg-base: #f0fdf4;
+      --bg-surface: rgba(220, 252, 231, 0.8);
+      --bg-surface-solid: #dcfce7;
+      --bg-surface-hover: rgba(187, 247, 208, 0.9);
+      --border-light: rgba(0, 0, 0, 0.05);
+      --border-accent: rgba(34, 197, 94, 0.3);
+      --text-main: #14532d;
+      --text-muted: #166534;
+      --brand-primary: #22c55e;
+      --brand-secondary: #15803d;
+      --brand-accent: #84cc16;
+      --grad-primary: linear-gradient(135deg, #4ade80 0%, #22c55e 50%, #a3e635 100%);
+      --grad-surface: linear-gradient(145deg, rgba(220, 252, 231, 0.9) 0%, rgba(240, 253, 244, 0.95) 100%);
+      --grad-button: linear-gradient(135deg, #22c55e, #166534);
+      --shadow-lg: 0 15px 35px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1);
+      --shadow-glow: 0 0 20px rgba(34, 197, 94, 0.2);
+    }
+
+    /* 18. Arctic Frost */
+    [data-theme="arctic-frost"] {
+      --bg-base: #f8fafc;
+      --bg-surface: rgba(226, 232, 240, 0.8);
+      --bg-surface-solid: #e2e8f0;
+      --bg-surface-hover: rgba(203, 213, 225, 0.9);
+      --border-light: rgba(0, 0, 0, 0.05);
+      --border-accent: rgba(56, 189, 248, 0.3);
+      --text-main: #0f172a;
+      --text-muted: #334155;
+      --brand-primary: #38bdf8;
+      --brand-secondary: #0284c7;
+      --brand-accent: #818cf8;
+      --grad-primary: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 50%, #a5b4fc 100%);
+      --grad-surface: linear-gradient(145deg, rgba(226, 232, 240, 0.9) 0%, rgba(248, 250, 252, 0.95) 100%);
+      --grad-button: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      --shadow-lg: 0 15px 35px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1);
+      --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.2);
+    }
+
+    /* 19. Desert Sand */
+    [data-theme="desert-sand"] {
+      --bg-base: #fffbeb;
+      --bg-surface: rgba(254, 243, 199, 0.8);
+      --bg-surface-solid: #fef3c7;
+      --bg-surface-hover: rgba(253, 230, 138, 0.9);
+      --border-light: rgba(0, 0, 0, 0.05);
+      --border-accent: rgba(217, 119, 6, 0.3);
+      --text-main: #78350f;
+      --text-muted: #92400e;
+      --brand-primary: #d97706;
+      --brand-secondary: #b45309;
+      --brand-accent: #ea580c;
+      --grad-primary: linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #f97316 100%);
+      --grad-surface: linear-gradient(145deg, rgba(254, 243, 199, 0.9) 0%, rgba(255, 251, 235, 0.95) 100%);
+      --grad-button: linear-gradient(135deg, #d97706, #92400e);
+      --shadow-lg: 0 15px 35px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1);
+      --shadow-glow: 0 0 20px rgba(217, 119, 6, 0.2);
+    }
+
+    /* 20. Obsidian Stealth */
+    [data-theme="obsidian-stealth"] {
+      --bg-base: #000000;
+      --bg-surface: rgba(10, 10, 10, 0.8);
+      --bg-surface-solid: #0a0a0a;
+      --bg-surface-hover: rgba(23, 23, 23, 0.9);
+      --border-light: rgba(255, 255, 255, 0.03);
+      --border-accent: rgba(255, 255, 255, 0.1);
+      --text-main: #d4d4d8;
+      --text-muted: #71717a;
+      --brand-primary: #52525b;
+      --brand-secondary: #3f3f46;
+      --brand-accent: #a1a1aa;
+      --grad-primary: linear-gradient(135deg, #a1a1aa 0%, #52525b 50%, #d4d4d8 100%);
+      --grad-surface: linear-gradient(145deg, rgba(10, 10, 10, 0.8) 0%, rgba(0, 0, 0, 0.95) 100%);
+      --grad-button: linear-gradient(135deg, #3f3f46, #27272a);
+      --shadow-glow: 0 0 15px rgba(255, 255, 255, 0.05);
     }
 
     body {
-      background-color: var(--bg-dark);
+      background-color: var(--bg-base);
       color: var(--text-main);
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
+      /* Extremely smooth transition for theme switches */
+      transition: background-color 0.8s var(--easing-smooth), color 0.8s var(--easing-smooth);
     }
 
-    /* Ambient Canvas */
-    #bg-canvas {
+    /* 
+      ==========================================================================
+      PREMIUM ORBITAL SPLASH SCREEN (GEMINI / AI CORE INSPIRED)
+      ========================================================================== 
+    */
+    #splash-screen {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-      pointer-events: none;
+      inset: 0;
+      background: var(--bg-base);
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1s var(--easing-smooth), visibility 1s var(--easing-smooth);
+      backdrop-filter: blur(20px);
+    }
+
+    .orbital-loader {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1000px;
+      margin-bottom: 2rem;
+    }
+
+    .orbital-core {
+      width: 30px;
+      height: 30px;
+      background: var(--grad-primary);
+      border-radius: 50%;
+      box-shadow: var(--shadow-glow);
+      animation: pulse-core 2s infinite ease-in-out alternate;
+    }
+
+    .orbital-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: var(--brand-primary);
+      border-bottom-color: var(--brand-secondary);
+      opacity: 0.8;
+      transform-style: preserve-3d;
+    }
+
+    .orbital-ring:nth-child(1) {
+      width: 100px;
+      height: 100px;
+      animation: orbit-x 3s linear infinite;
+    }
+
+    .orbital-ring:nth-child(2) {
+      width: 130px;
+      height: 130px;
+      animation: orbit-y 4s linear infinite;
+      border-top-color: var(--brand-secondary);
+      border-bottom-color: var(--brand-accent);
+    }
+
+    .orbital-ring:nth-child(3) {
+      width: 160px;
+      height: 160px;
+      animation: orbit-z 5s linear infinite;
+      border-top-color: var(--brand-accent);
+      border-bottom-color: var(--brand-primary);
+    }
+
+    @keyframes pulse-core {
+      0% { transform: scale(0.9); box-shadow: 0 0 10px var(--brand-primary); }
+      100% { transform: scale(1.2); box-shadow: 0 0 40px var(--brand-secondary), 0 0 60px var(--brand-accent); }
+    }
+
+    @keyframes orbit-x {
+      0% { transform: rotateX(70deg) rotateZ(0deg); }
+      100% { transform: rotateX(70deg) rotateZ(360deg); }
+    }
+
+    @keyframes orbit-y {
+      0% { transform: rotateY(70deg) rotateZ(0deg); }
+      100% { transform: rotateY(70deg) rotateZ(360deg); }
+    }
+
+    @keyframes orbit-z {
+      0% { transform: rotateZ(0deg) rotateX(45deg) rotateY(45deg); }
+      100% { transform: rotateZ(360deg) rotateX(45deg) rotateY(45deg); }
+    }
+
+    .splash-text {
+      text-align: center;
+      animation: fadeUpSplash 1.5s var(--easing-smooth) forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .splash-text h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .splash-text p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      letter-spacing: 1px;
+    }
+
+    @keyframes fadeUpSplash {
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* App Shell */
@@ -200,1316 +585,1260 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      max-width: 1440px;
+      max-width: 1600px;
       margin: 0 auto;
-      padding: 2rem 1.5rem;
-      gap: 1.75rem;
+      padding: 2rem;
+      gap: 2rem;
+      /* Subtle entry animation for the shell */
+      animation: shellEnter 1s var(--easing-smooth) forwards;
+      opacity: 0;
+    }
+
+    @keyframes shellEnter {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @media (max-width: 768px) {
+      .app-shell { padding: 1rem; gap: 1.25rem; }
+    }
+
+    /* 
+      ==========================================================================
+      GLASS COMPONENTS & MICRO-INTERACTIONS
+      ========================================================================== 
+    */
+    .glass-panel {
+      background: var(--grad-surface);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      transition: transform 0.4s var(--easing-smooth), box-shadow 0.4s var(--easing-smooth), border-color 0.4s ease;
+      overflow: hidden;
+    }
+
+    .glass-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .glass-panel:hover {
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
     }
 
     /* Header Bar */
-    header.orbital-header {
+    header.main-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--grad-premium-glass);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-glow);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem 2rem;
-      box-shadow: var(--shadow-premium);
+      padding: 1.5rem 2.5rem;
     }
 
     .brand-title {
       display: flex;
       align-items: center;
-      gap: 1rem;
-    }
-
-    .gemini-sparkle-icon {
-      width: 34px;
-      height: 34px;
-      animation: pulseGlow 4s infinite alternate;
-    }
-
-    @keyframes pulseGlow {
-      0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 6px rgba(168, 199, 250, 0.5)); }
-      100% { transform: scale(1.1) rotate(15deg); filter: drop-shadow(0 0 20px rgba(217, 101, 112, 0.7)); }
+      gap: 1.25rem;
     }
 
     .brand-title h1 {
-      font-size: 1.5rem;
+      font-size: 1.75rem;
       font-weight: 800;
-      background: var(--grad-gemini);
+      background: var(--grad-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: -0.5px;
     }
 
-    .brand-title span.badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 0.25rem 0.75rem;
+    .admin-badge {
+      display: none;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.35rem 0.85rem;
       border-radius: var(--radius-pill);
-      background: rgba(168, 199, 250, 0.1);
-      color: var(--gemini-light-blue);
-      border: 1px solid rgba(168, 199, 250, 0.2);
+      background: rgba(217, 101, 112, 0.15);
+      color: var(--brand-accent);
+      border: 1px solid rgba(217, 101, 112, 0.3);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px rgba(217, 101, 112, 0.2);
+    }
+    
+    .admin-badge.visible {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      animation: pulse-badge 2s infinite;
+    }
+
+    @keyframes pulse-badge {
+      0% { box-shadow: 0 0 0 0 rgba(217, 101, 112, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(217, 101, 112, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(217, 101, 112, 0); }
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 1.25rem;
     }
 
     .live-clock-badge {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      background: rgba(0, 0, 0, 0.4);
+      gap: 0.75rem;
+      background: var(--bg-surface-solid);
       border: 1px solid var(--border-accent);
-      padding: 0.55rem 1.25rem;
+      padding: 0.65rem 1.5rem;
       border-radius: var(--radius-pill);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.95rem;
-      color: var(--gemini-light-blue);
-      box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-main);
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.2), 0 4px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+
+    .live-clock-badge:hover {
+      border-color: var(--brand-primary);
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.2), var(--shadow-glow);
     }
 
     .status-dot {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background-color: var(--gemini-green);
-      box-shadow: 0 0 10px var(--gemini-green);
+      background-color: var(--brand-success);
+      box-shadow: 0 0 12px var(--brand-success);
       animation: blink 2s infinite;
     }
+    @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+    /* Custom Select for Themes */
+    .theme-select-wrapper {
+      position: relative;
+    }
+    
+    .theme-select-wrapper i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      color: var(--text-muted);
+      pointer-events: none;
     }
 
-    /* Navigation Tabs */
+    select.form-control.theme-select {
+      padding-left: 2.5rem;
+      border-radius: var(--radius-pill);
+      appearance: none;
+      background: var(--bg-surface-solid);
+      border: 1px solid var(--border-light);
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-main);
+      transition: all 0.3s ease;
+    }
+    select.form-control.theme-select:hover {
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
     nav.nav-tabs {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.75rem;
       background: var(--bg-surface);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      padding: 0.5rem;
+      padding: 0.75rem;
       border-radius: var(--radius-pill);
-      border: 1px solid var(--border-glow);
+      border: 1px solid var(--border-light);
       overflow-x: auto;
       scrollbar-width: none;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      box-shadow: var(--shadow-sm);
     }
-
     nav.nav-tabs::-webkit-scrollbar { display: none; }
 
     .nav-btn {
       display: flex;
       align-items: center;
-      gap: 0.55rem;
-      padding: 0.75rem 1.5rem;
+      gap: 0.75rem;
+      padding: 0.85rem 1.75rem;
       border-radius: var(--radius-pill);
       border: none;
       background: transparent;
       color: var(--text-muted);
-      font-weight: 600;
-      font-size: 0.9rem;
+      font-weight: 700;
+      font-size: 0.95rem;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s var(--easing-smooth);
       white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .nav-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--border-light);
+      opacity: 0;
+      transition: opacity 0.3s;
     }
 
-    .nav-btn:hover {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
+    .nav-btn:hover::before { opacity: 1; }
+    .nav-btn:hover { color: var(--text-main); }
+    
     .nav-btn.active {
-      background: var(--grad-accent-btn);
+      background: var(--grad-button);
       color: #fff;
-      box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
-      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
     }
 
-    /* Main Content Area */
     main.content-area {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 2rem;
+      flex: 1;
     }
 
     .tab-pane {
       display: none;
-      animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(20px);
     }
-
+    
     .tab-pane.active {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 2rem;
+      animation: paneEnter 0.6s var(--easing-smooth) forwards;
     }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(15px); }
+    @keyframes paneEnter {
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Glass Panels */
-    .glass-panel {
-      background: var(--grad-premium-glass);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-glow);
-      border-radius: var(--radius-lg);
-      padding: 1.75rem;
-      box-shadow: var(--shadow-premium);
+    /* Buttons */
+    .icon-btn {
+      background: var(--bg-surface-solid);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s var(--easing-bounce);
+      box-shadow: var(--shadow-sm);
+    }
+    .icon-btn:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+      transform: scale(1.1);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .btn-primary {
+      background: var(--grad-button);
+      color: #fff;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: var(--radius-pill);
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      transition: all 0.3s var(--easing-bounce);
+      box-shadow: var(--shadow-md);
       position: relative;
       overflow: hidden;
     }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: rgba(255,255,255,0.2);
+      transform: rotate(45deg) translateY(-100%);
+      transition: transform 0.6s ease;
+    }
+    .btn-primary:hover::after {
+      transform: rotate(45deg) translateY(100%);
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 15px 35px rgba(66, 133, 244, 0.4);
+    }
 
-    /* Live Orbit Dashboard Grid */
+    .btn-secondary {
+      background: var(--bg-surface-solid);
+      color: var(--text-main);
+      border: 1px solid var(--border-light);
+      padding: 1rem 2rem;
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-secondary:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 1.75rem;
+      grid-template-columns: 420px 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 1200px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 1024px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Global Reminders Banner */
-    .global-reminders-panel {
+    /* Announcements */
+    .announcements-panel {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
     }
-
-    .reminder-card {
-      background: linear-gradient(90deg, rgba(217, 101, 112, 0.15) 0%, rgba(155, 114, 203, 0.05) 100%);
-      border-left: 4px solid var(--gemini-pink);
+    .announcement-card {
+      background: rgba(217, 101, 112, 0.08);
+      border-left: 4px solid var(--brand-accent);
       border-radius: var(--radius-md);
-      padding: 1rem 1.25rem;
+      padding: 1.25rem 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      animation: fadeIn 0.3s ease;
+      box-shadow: var(--shadow-sm);
+      animation: slideInRight 0.5s var(--easing-smooth) forwards;
+      transition: transform 0.3s ease;
     }
-    
-    .reminder-content {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    .announcement-card:hover {
+      transform: translateX(5px);
+      background: rgba(217, 101, 112, 0.12);
     }
-
-    .reminder-icon {
-      background: rgba(217, 101, 112, 0.2);
-      padding: 0.5rem;
-      border-radius: 50%;
-      color: var(--gemini-pink);
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
     }
 
-    /* Hero Clock & Current Class Widget */
     .current-session-widget {
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 1.5rem;
-      background: linear-gradient(180deg, rgba(30, 34, 50, 0.8) 0%, rgba(15, 17, 26, 0.95) 100%);
-      border: 1px solid var(--border-accent);
-      position: relative;
+      gap: 2rem;
+      padding: 2.5rem;
     }
-
-    .current-session-widget::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(155, 114, 203, 0.15) 0%, transparent 60%);
-      pointer-events: none;
-    }
-
     .progress-ring-container {
       position: relative;
-      width: 190px;
-      height: 190px;
+      width: 220px;
+      height: 220px;
       display: flex;
       align-items: center;
       justify-content: center;
+      filter: drop-shadow(0 0 20px rgba(0,0,0,0.2));
     }
-
-    .progress-ring {
-      transform: rotate(-90deg);
-    }
-
+    .progress-ring { transform: rotate(-90deg); overflow: visible; }
     .progress-ring-circle-bg {
-      stroke: rgba(255, 255, 255, 0.05);
-      stroke-width: 10;
+      stroke: var(--border-light);
+      stroke-width: 12;
     }
-
     .progress-ring-circle {
       stroke: url(#ring-gradient);
-      stroke-width: 10;
-      stroke-dasharray: 502;
-      stroke-dashoffset: 502;
+      stroke-width: 12;
+      stroke-dasharray: 565.48; /* 2 * pi * 90 */
+      stroke-dashoffset: 565.48;
       stroke-linecap: round;
-      transition: stroke-dashoffset 1s linear;
-      filter: drop-shadow(0 0 8px rgba(155, 114, 203, 0.4));
+      transition: stroke-dashoffset 1s linear, stroke 0.5s ease;
+      filter: drop-shadow(0 0 8px var(--brand-primary));
     }
-
     .clock-inner {
       position: absolute;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
     }
-
     .time-large {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 2rem;
-      font-weight: 700;
-      color: #fff;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -1px;
       text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
-
     .time-sub {
-      font-size: 0.8rem;
-      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
     }
 
     .session-info-card {
       width: 100%;
-      padding: 1.25rem;
+      padding: 1.5rem;
       border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-glow);
+      background: var(--bg-surface-solid);
+      border: 1px solid var(--border-light);
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
-      box-shadow: inset 0 2px 20px rgba(0,0,0,0.2);
+      gap: 0.75rem;
+      transition: all 0.3s ease;
     }
-
+    .session-info-card:hover {
+      border-color: var(--border-accent);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
     .session-tag {
       align-self: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--gemini-purple);
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--brand-secondary);
       background: rgba(155, 114, 203, 0.15);
-      padding: 0.35rem 0.85rem;
+      padding: 0.4rem 1rem;
       border-radius: var(--radius-pill);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
+      border: 1px solid rgba(155, 114, 203, 0.3);
     }
-
     .session-name {
-      font-size: 1.5rem;
+      font-size: 1.75rem;
       font-weight: 800;
-      background: var(--grad-gemini);
+      background: var(--grad-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      line-height: 1.2;
     }
 
-    .session-meta-row {
-      display: flex;
-      justify-content: center;
-      gap: 1.25rem;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    .session-meta-item {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    /* Day Orbit Selector & Timeline */
-    .timeline-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .cycle-pills {
-      display: flex;
-      gap: 0.5rem;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-      scrollbar-width: none;
-    }
-    .cycle-pills::-webkit-scrollbar { display: none; }
-
-    .cycle-btn {
-      padding: 0.55rem 1rem;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-glow);
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .cycle-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      transform: translateY(-2px);
-    }
-
-    .cycle-btn.active {
-      background: var(--gemini-blue);
-      color: #fff;
-      border-color: var(--gemini-light-blue);
-      box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
-    }
-
-    .timeline-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
-
-    .timeline-card {
-      display: grid;
-      grid-template-columns: 140px 1fr auto;
-      align-items: center;
-      gap: 1.25rem;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-glow);
-      padding: 1.1rem 1.5rem;
+    .stopwatch-widget {
+      background: var(--bg-surface-solid);
       border-radius: var(--radius-md);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .timeline-card:hover {
-      background: var(--bg-surface-hover);
-      border-color: var(--border-accent);
-      transform: translateX(6px);
-      box-shadow: -4px 8px 20px rgba(0,0,0,0.3);
-    }
-
-    .timeline-card.now-active {
-      background: linear-gradient(90deg, rgba(66, 133, 244, 0.15) 0%, rgba(155, 114, 203, 0.05) 100%);
-      border: 1px solid var(--gemini-blue);
-      box-shadow: 0 8px 25px rgba(66, 133, 244, 0.25);
-    }
-
-    .timeline-card.break-card {
-      opacity: 0.6;
-      border-style: dashed;
-      background: transparent;
-      box-shadow: none;
-    }
-
-    .time-box {
+      padding: 2rem;
+      border: 1px solid var(--border-light);
       display: flex;
       flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      margin-top: 2rem;
+      width: 100%;
+      box-shadow: var(--shadow-sm);
     }
-
-    .time-text {
+    .sw-display {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .session-title-slot {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    .slot-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .slot-meta {
-      display: flex;
-      gap: 1rem;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-    }
-
-    /* Action Icon Button */
-    .icon-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-glow);
-      color: var(--text-muted);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .icon-btn:hover {
-      background: rgba(255, 255, 255, 0.15);
-      color: var(--text-main);
-      transform: scale(1.1);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
-    /* Interactive Calendar View */
-    .calendar-container {
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: 1.75rem;
-    }
-
-    @media (max-width: 1024px) {
-      .calendar-container { grid-template-columns: 1fr; }
-    }
-
-    .calendar-header-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-
-    .month-title {
-      font-size: 1.5rem;
+      font-size: 3rem;
       font-weight: 800;
-      color: #fff;
-      letter-spacing: -0.5px;
+      color: var(--text-main);
+      letter-spacing: 2px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      font-variant-numeric: tabular-nums;
     }
-
-    .calendar-grid-header {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      text-align: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border-glow);
-      margin-bottom: 1rem;
+    .sw-controls { display: flex; gap: 1rem; width: 100%; }
+    .sw-btn {
+      flex: 1;
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+      transition: all 0.3s var(--easing-bounce);
       text-transform: uppercase;
       letter-spacing: 1px;
     }
-
-    .calendar-days-grid {
+    .sw-btn:hover { background: var(--border-light); transform: translateY(-2px); }
+    .sw-btn.start { background: var(--brand-success); color: #fff; box-shadow: 0 5px 15px rgba(52, 168, 83, 0.3); }
+    .sw-btn.start:hover { background: #2e964a; box-shadow: 0 8px 20px rgba(52, 168, 83, 0.4); }
+    .sw-btn.stop { background: var(--brand-accent); color: #fff; box-shadow: 0 5px 15px rgba(217, 101, 112, 0.3); }
+    
+    .timeline-list { display: flex; flex-direction: column; gap: 1rem; }
+    .timeline-card {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 0.75rem;
+      grid-template-columns: 150px 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      background: var(--bg-surface-solid);
+      border: 1px solid transparent;
+      padding: 1.25rem 1.75rem;
+      border-radius: var(--radius-md);
+      transition: all 0.4s var(--easing-smooth);
+      position: relative;
+      overflow: hidden;
+    }
+    .timeline-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--brand-primary);
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+      transform-origin: center;
+    }
+    .timeline-card:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-accent);
+      transform: translateX(8px);
+      box-shadow: var(--shadow-md);
+    }
+    .timeline-card:hover::before { transform: scaleY(1); }
+    
+    .timeline-card.now-active {
+      background: rgba(66, 133, 244, 0.1);
+      border: 1px solid var(--brand-primary);
+      box-shadow: 0 0 20px rgba(66, 133, 244, 0.15);
+    }
+    .timeline-card.now-active::before {
+      transform: scaleY(1);
+      background: var(--brand-success);
+    }
+    .timeline-card.break-card {
+      opacity: 0.65;
+      border-style: dashed;
+      border-color: var(--border-light);
+      background: transparent;
+    }
+    .timeline-card.break-card:hover { opacity: 1; border-style: solid; }
+
+    /* Cycle Picker Pills */
+    .cycle-btn {
+      padding: 0.5rem 1.25rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .cycle-btn:hover { background: var(--bg-surface-hover); color: var(--text-main); }
+    .cycle-btn.active {
+      background: var(--brand-primary);
+      color: #fff;
+      border-color: var(--brand-primary);
+      box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
     }
 
-    .cal-day-cell {
-      min-height: 95px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-glow);
-      border-radius: var(--radius-sm);
-      padding: 0.65rem;
+    .notes-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 2rem;
+      height: 650px;
+    }
+    @media (max-width: 900px) {
+      .notes-grid { grid-template-columns: 1fr; height: auto; display: flex; flex-direction: column; }
+    }
+    
+    .notes-sidebar {
+      background: var(--bg-surface-solid);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .notes-tabs { display: flex; border-bottom: 1px solid var(--border-light); }
+    .note-tab {
+      flex: 1;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      font-weight: 800;
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: inset 0 0 0 1px transparent;
-    }
-
-    .cal-day-cell:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: var(--border-accent);
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.05);
-      z-index: 10;
-    }
-
-    .cal-day-cell.other-month {
-      opacity: 0.2;
-      pointer-events: none;
-    }
-
-    .cal-day-cell.today {
-      border-color: var(--gemini-blue);
-      background: rgba(66, 133, 244, 0.1);
-      box-shadow: inset 0 0 20px rgba(66, 133, 244, 0.15);
-    }
-
-    .cal-day-num {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .cal-cycle-tag {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0.2rem 0.5rem;
-      border-radius: 6px;
-      background: rgba(155, 114, 203, 0.2);
-      color: var(--gemini-purple);
-      align-self: flex-start;
-      border: 1px solid rgba(155, 114, 203, 0.1);
-    }
-
-    .cal-event-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--gemini-pink);
-      box-shadow: 0 0 8px var(--gemini-pink);
-    }
-
-    /* Timetable Matrix Grid View */
-    .timetable-grid-wrapper {
-      overflow-x: auto;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-glow);
-      box-shadow: inset 0 4px 20px rgba(0,0,0,0.2);
-    }
-
-    table.timetable-matrix {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      min-width: 950px;
-    }
-
-    table.timetable-matrix th, table.timetable-matrix td {
-      padding: 1.1rem;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    table.timetable-matrix th {
-      background: rgba(0, 0, 0, 0.5);
-      color: var(--gemini-light-blue);
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-transform: uppercase;
+      background: transparent;
+      color: var(--text-muted);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
       letter-spacing: 0.5px;
     }
-
-    table.timetable-matrix tr:nth-child(even) td {
-      background: rgba(255, 255, 255, 0.015);
+    .note-tab.active {
+      color: var(--brand-primary);
+      border-bottom-color: var(--brand-primary);
+      background: rgba(66, 133, 244, 0.05);
     }
-
-    .table-cell-card {
+    .notes-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
-      padding: 0.75rem;
+      gap: 1rem;
+    }
+    .note-item-preview {
+      padding: 1.25rem;
       border-radius: var(--radius-sm);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid transparent;
-      transition: all 0.2s;
+      background: var(--bg-surface);
+      cursor: pointer;
+      border: 1px solid var(--border-light);
+      transition: all 0.3s ease;
     }
-
-    .table-cell-card:hover {
-      border-color: var(--gemini-purple);
-      background: rgba(155, 114, 203, 0.12);
-      transform: scale(1.02);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    .note-item-preview:hover, .note-item-preview.active {
+      border-color: var(--brand-secondary);
+      background: rgba(155, 114, 203, 0.1);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
     }
-
-    .cell-subject {
-      font-weight: 700;
+    
+    .notes-main {
+      background: var(--bg-surface-solid);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .note-editor {
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .note-title-input {
+      font-size: 2rem;
+      font-weight: 800;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      outline: none;
+      padding: 0.5rem 0;
+      border-bottom: 2px solid transparent;
+      transition: border-color 0.3s;
+    }
+    .note-title-input:focus { border-bottom-color: var(--brand-primary); }
+    
+    .note-body-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      resize: none;
+      outline: none;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+    .note-attachment-input {
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-light);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
       font-size: 0.95rem;
       color: var(--text-main);
+      outline: none;
+      width: 100%;
+      margin-bottom: 0.75rem;
+      transition: all 0.3s;
     }
-
-    .cell-details {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    /* Tasks / To-Do Manager */
-    .tasks-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (max-width: 768px) {
-      .tasks-grid { grid-template-columns: 1fr; }
-    }
+    .note-attachment-input:focus { border-color: var(--brand-primary); background: var(--bg-surface-solid); }
 
     .task-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1rem 1.25rem;
+      padding: 1.25rem 1.75rem;
       border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-glow);
-      margin-bottom: 0.75rem;
-      transition: all 0.25s;
+      background: var(--bg-surface-solid);
+      border: 1px solid var(--border-light);
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
-    .task-item:hover {
-      border-color: var(--border-accent);
-      background: rgba(255, 255, 255, 0.06);
-      transform: translateX(4px);
+    .task-item:hover { 
+      border-color: var(--border-accent); 
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
-
-    .task-item.completed {
-      opacity: 0.5;
+    .task-item.completed { 
+      opacity: 0.5; 
+      background: transparent; 
+      border-style: dashed;
     }
+    .task-item.completed .task-text { text-decoration: line-through; }
     
-    .task-item.completed span.task-text {
-      text-decoration: line-through;
-    }
-
-    .task-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
     .custom-checkbox {
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
       border: 2px solid var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
+      transition: all 0.3s var(--easing-bounce);
     }
-
+    .custom-checkbox:hover { border-color: var(--brand-primary); }
     .custom-checkbox.checked {
-      background: var(--gemini-green);
-      border-color: var(--gemini-green);
-      color: #000;
-      box-shadow: 0 0 10px rgba(195, 237, 210, 0.3);
+      background: var(--brand-success);
+      border-color: var(--brand-success);
+      color: #fff;
+      transform: scale(1.1);
+    }
+    
+    /* Directory Cards */
+    .dir-card {
+      padding: 2rem;
+      transition: all 0.4s var(--easing-smooth);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .dir-card:hover {
+      transform: translateY(-5px) scale(1.02);
+    }
+    .dir-icon-wrap {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: rgba(66, 133, 244, 0.1);
+      color: var(--brand-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
     }
 
     /* Modals & Forms */
     .modal-backdrop {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      z-index: 1000;
+      z-index: 10000;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 1.5rem;
+      opacity: 0;
+      transition: opacity 0.4s ease;
     }
-
-    .modal-backdrop.open {
-      display: flex;
-      animation: fadeIn 0.3s ease;
-    }
-
+    .modal-backdrop.open { display: flex; opacity: 1; }
     .modal-box {
-      background: var(--bg-dark);
+      background: var(--bg-surface-solid);
       border: 1px solid var(--border-accent);
       border-radius: var(--radius-lg);
       width: 100%;
-      max-width: 520px;
-      padding: 2rem;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1);
+      max-width: 560px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
-      position: relative;
+      transform: scale(0.9);
+      transition: transform 0.4s var(--easing-bounce);
     }
-
-    .modal-box::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 100%;
-      background: radial-gradient(circle at top, rgba(168, 199, 250, 0.1), transparent 50%);
-      pointer-events: none;
-      border-radius: var(--radius-lg);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .modal-title {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #fff;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .form-group label {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
+    .modal-backdrop.open .modal-box { transform: scale(1); }
+    
     .form-control {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-glow);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
       border-radius: var(--radius-sm);
-      padding: 0.85rem 1rem;
+      padding: 1rem 1.25rem;
       color: var(--text-main);
-      font-size: 0.95rem;
+      font-size: 1rem;
       outline: none;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
+      width: 100%;
     }
-
-    .form-control:focus {
-      border-color: var(--gemini-blue);
-      background: rgba(255, 255, 255, 0.08);
+    .form-control:focus { 
+      border-color: var(--brand-primary);
+      background: var(--bg-surface-solid);
       box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
     }
-    
-    .form-control:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
 
-    .btn-primary {
-      background: var(--grad-accent-btn);
-      color: #fff;
-      border: none;
-      padding: 0.85rem 1.5rem;
-      border-radius: var(--radius-pill);
-      font-weight: 700;
-      font-size: 0.95rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: all 0.3s;
-      position: relative;
-      z-index: 1;
-    }
-
-    .btn-primary:hover {
-      box-shadow: 0 8px 25px rgba(66, 133, 244, 0.5);
-      transform: translateY(-2px);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-      border: 1px solid var(--border-glow);
-      padding: 0.85rem 1.5rem;
-      border-radius: var(--radius-pill);
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    /* Subject Directory Cards */
-    .subject-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .subject-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-glow);
-      border-radius: var(--radius-md);
-      padding: 1.5rem;
+    /* Matrix */
+    table.timetable-matrix { width: 100%; border-collapse: separate; border-spacing: 0.5rem; min-width: 900px; }
+    table.timetable-matrix th, table.timetable-matrix td { padding: 0.5rem; }
+    table.timetable-matrix th { color: var(--text-muted); font-weight: 800; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+    .table-cell-card { 
+      padding: 1rem; 
+      background: var(--bg-surface-solid); 
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md); 
+      transition: all 0.3s ease;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
-      transition: all 0.3s;
+      gap: 0.5rem;
     }
-
-    .subject-card:hover {
-      border-color: var(--gemini-blue);
-      transform: translateY(-5px);
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-
-    .subject-code-badge {
-      font-weight: 800;
-      font-size: 1.2rem;
-      color: var(--gemini-light-blue);
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 0.85rem;
-      margin-top: auto;
-      padding-top: 1.5rem;
-      font-weight: 500;
+    .table-cell-card:hover { 
+      background: var(--bg-surface-hover); 
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
     }
   </style>
 </head>
 <body>
 
-  <!-- Background Animated Canvas -->
-  <canvas id="bg-canvas"></canvas>
+  <div id="splash-screen">
+    <div class="orbital-loader">
+      <div class="orbital-ring"></div>
+      <div class="orbital-ring"></div>
+      <div class="orbital-ring"></div>
+      <div class="orbital-core"></div>
+    </div>
+    <div class="splash-text">
+      <h2>CLASS 3CS</h2>
+      <p>Initializing Secure Academic Portal...</p>
+    </div>
+  </div>
 
   <div class="app-shell">
     
-    <!-- Top Bar Header -->
-    <header class="orbital-header">
+    <header class="main-header glass-panel" style="padding: 1.25rem 2.5rem;">
       <div class="brand-title">
-        <svg class="gemini-sparkle-icon" viewBox="0 0 24 24" fill="none">
-          <path d="M12 0C12 6.62742 6.62742 12 0 12C6.62742 12 12 17.3726 12 24C12 17.3726 17.3726 12 24 12C17.3726 12 12 6.62742 12 0Z" fill="url(#brand-grad)"/>
-          <defs>
-            <linearGradient id="brand-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#4285f4"/>
-              <stop offset="0.5" stop-color="#9b72cb"/>
-              <stop offset="1" stop-color="#d96570"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div>
-          <h1>Class 3CS Orbital</h1>
+        <div style="background: var(--grad-primary); padding: 0.5rem; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+          <i data-lucide="graduation-cap" style="width:32px; height:32px; color:#fff;"></i>
         </div>
-        <span class="badge">Gemini Sync</span>
-        <span class="admin-badge" id="admin-status-badge"><i data-lucide="shield-check" style="width:14px;"></i> Global Admin</span>
+        <div>
+          <h1 style="font-size: 1.5rem;">Class 3CS Portal</h1>
+        </div>
+        <span class="admin-badge" id="admin-status-badge"><i data-lucide="shield-check" style="width:14px;"></i> Admin Active</span>
       </div>
 
       <div class="header-actions">
+        <!-- Expanded 20 Theme Selector -->
+        <div class="theme-select-wrapper">
+          <i data-lucide="palette"></i>
+          <select class="form-control theme-select" id="theme-selector" onchange="setTheme(this.value)">
+            <optgroup label="Classic Styles">
+              <option value="default">Classic Dark</option>
+              <option value="light">Clean Light</option>
+              <option value="monochrome-slate">Monochrome Slate</option>
+              <option value="obsidian-stealth">Obsidian Stealth</option>
+            </optgroup>
+            <optgroup label="Vibrant & Bold">
+              <option value="cyberpunk-neon">Cyberpunk Neon</option>
+              <option value="retro-80s">Retro 80s</option>
+              <option value="amethyst-purple">Amethyst Purple</option>
+              <option value="ruby-red">Ruby Red</option>
+            </optgroup>
+            <optgroup label="Nature Inspired">
+              <option value="forest-green">Forest Green</option>
+              <option value="ocean-breeze">Ocean Breeze</option>
+              <option value="sunset-orange">Sunset Orange</option>
+              <option value="desert-sand">Desert Sand</option>
+            </optgroup>
+            <optgroup label="Atmospheric">
+              <option value="midnight-blue">Midnight Blue</option>
+              <option value="solar-flare">Solar Flare</option>
+              <option value="galaxy-deep">Galaxy Deep</option>
+              <option value="arctic-frost">Arctic Frost</option>
+            </optgroup>
+            <optgroup label="Aesthetic Pastels">
+              <option value="sakura-pink">Sakura Pink</option>
+              <option value="mint-chocolate">Mint Chocolate</option>
+              <option value="matcha-latte">Matcha Latte</option>
+              <option value="autumn-gold">Autumn Gold</option>
+            </optgroup>
+          </select>
+        </div>
+        
         <div class="live-clock-badge">
           <div class="status-dot"></div>
           <span id="live-time-display">00:00:00 AM</span>
         </div>
-        <button class="icon-btn" onclick="toggleNotesDrawer()" title="Open Notepad (Public & Private)">
-          <i data-lucide="notebook-pen"></i>
-        </button>
-        <button class="icon-btn" onclick="openTimingModal()" title="Customize Period Times & Time Simulation">
-          <i data-lucide="clock"></i>
-        </button>
-        <button class="icon-btn" onclick="toggleAudioChime()" id="audio-toggle-btn" title="Toggle Transition Chime">
-          <i data-lucide="volume-2"></i>
+        <button class="icon-btn" onclick="openAdminLogin()" title="Admin Login" style="width: 48px; height: 48px;">
+          <i data-lucide="lock"></i>
         </button>
       </div>
     </header>
 
-    <!-- Navigation Tabs -->
     <nav class="nav-tabs">
       <button class="nav-btn active" onclick="switchTab('dashboard', this)">
-        <i data-lucide="layout-dashboard"></i> Live Orbit
+        <i data-lucide="layout-dashboard"></i> Dashboard
       </button>
-      <button class="nav-btn" onclick="switchTab('calendar', this)">
-        <i data-lucide="calendar"></i> Master Calendar
+      <button class="nav-btn" onclick="switchTab('notes', this)">
+        <i data-lucide="book-open-check"></i> Notes & Docs
       </button>
       <button class="nav-btn" onclick="switchTab('timetable', this)">
-        <i data-lucide="grid"></i> Full Matrix
+        <i data-lucide="grid"></i> Master Timetable
       </button>
       <button class="nav-btn" onclick="switchTab('tasks', this)">
-        <i data-lucide="check-square"></i> Tasks & Assignments
+        <i data-lucide="check-square"></i> Assignments
       </button>
       <button class="nav-btn" onclick="switchTab('directory', this)">
-        <i data-lucide="book-open"></i> Subjects & Rooms
+        <i data-lucide="users"></i> Directory
       </button>
+      <!-- Note: Calendar tab is hidden per user request to defer the complex calendar logic -->
     </nav>
 
     <!-- Content Pages -->
     <main class="content-area">
 
-      <!-- TAB 1: LIVE DASHBOARD -->
       <div id="tab-dashboard" class="tab-pane active">
         
         <!-- Global Announcements Banner Area -->
-        <div id="global-reminders-container" class="global-reminders-panel" style="display:none;">
-          <!-- JS Rendered Reminders -->
-        </div>
-        
-        <div style="display:flex; justify-content: flex-end; margin-bottom: 0.5rem;">
-           <button class="btn-secondary" id="add-global-announcement-btn" onclick="requireAdmin(addGlobalAnnouncement)" style="display: none; padding: 0.5rem 1rem; font-size: 0.8rem;">
-              <i data-lucide="megaphone" style="width:14px;"></i> Broadcast Announcement
+        <div id="global-reminders-container" class="announcements-panel" style="display:none;"></div>
+        <div style="display:flex; justify-content: flex-end; margin-bottom: 1rem;">
+           <button class="btn-secondary" id="add-global-announcement-btn" onclick="requireAdmin(addGlobalAnnouncement)" style="display: none; padding: 0.5rem 1.25rem; font-size: 0.85rem;">
+              <i data-lucide="megaphone" style="width:16px;"></i> Broadcast Announcement
            </button>
         </div>
 
         <div class="dashboard-grid">
           
-          <!-- Current Active Session Card -->
-          <div class="glass-panel current-session-widget">
-            <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-              <span class="session-tag" id="orbit-cycle-indicator">Orbit Day 1</span>
-              <button class="icon-btn" style="width:32px; height:32px;" onclick="switchTab('calendar', document.querySelectorAll('.nav-btn')[1])" title="View Cycle Day on Calendar">
-                <i data-lucide="calendar-days" style="width:16px;"></i>
-              </button>
-            </div>
-
-            <div class="progress-ring-container">
-              <svg class="progress-ring" width="190" height="190">
-                <defs>
-                  <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#4285f4" />
-                    <stop offset="50%" stop-color="#9b72cb" />
-                    <stop offset="100%" stop-color="#d96570" />
-                  </linearGradient>
-                </defs>
-                <circle class="progress-ring-circle-bg" cx="95" cy="95" r="80" fill="transparent" />
-                <circle id="session-progress-circle" class="progress-ring-circle" cx="95" cy="95" r="80" fill="transparent" />
-              </svg>
-              <div class="clock-inner">
-                <span class="time-large" id="countdown-timer">00:00</span>
-                <span class="time-sub" id="countdown-label">Remaining</span>
+          <!-- Left Column: Clock & Timer -->
+          <div style="display: flex; flex-direction: column;">
+            <div class="glass-panel current-session-widget">
+              <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+                <span class="session-tag" id="orbit-cycle-indicator">Day 1 Cycle</span>
+                <i data-lucide="clock" style="color:var(--text-muted); width: 24px; height: 24px;"></i>
               </div>
-            </div>
 
-            <div class="session-info-card">
-              <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px;" id="active-session-label">Session 1</span>
-              <div class="session-name" id="active-subject-name">Loading...</div>
-              <div class="session-meta-row">
-                <div class="session-meta-item">
-                  <i data-lucide="map-pin" style="width:16px; color:var(--gemini-light-blue);"></i>
-                  <span id="active-room-name" style="font-weight: 500;">--</span>
+              <div class="progress-ring-container">
+                <svg class="progress-ring" width="220" height="220">
+                  <defs>
+                    <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="var(--brand-primary)" />
+                      <stop offset="50%" stop-color="var(--brand-secondary)" />
+                      <stop offset="100%" stop-color="var(--brand-accent)" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="progress-ring-circle-bg" cx="110" cy="110" r="90" fill="transparent" />
+                  <circle id="session-progress-circle" class="progress-ring-circle" cx="110" cy="110" r="90" fill="transparent" />
+                </svg>
+                <div class="clock-inner">
+                  <span class="time-large" id="countdown-timer">00:00</span>
+                  <span class="time-sub" id="countdown-label">Remaining</span>
                 </div>
-                <div class="session-meta-item">
-                  <i data-lucide="user" style="width:16px; color:var(--gemini-green);"></i>
-                  <span id="active-teacher-name" style="font-weight: 500;">--</span>
+              </div>
+
+              <div class="session-info-card">
+                <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 2px;" id="active-session-label">Loading...</span>
+                <div class="session-name" id="active-subject-name">--</div>
+                <div style="display: flex; justify-content: center; gap: 1.5rem; font-size: 1rem; color: var(--text-muted); font-weight: 600; margin-top: 0.5rem;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="map-pin" style="width:18px;"></i><span id="active-room-name">--</span></div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="user" style="width:18px;"></i><span id="active-teacher-name">--</span></div>
                 </div>
               </div>
             </div>
 
-            <div style="font-size:0.85rem; color:var(--text-muted); display:flex; gap:0.5rem; align-items:center; font-weight: 500;">
-              <i data-lucide="sparkles" style="width:16px; color:var(--gemini-pink);"></i>
-              <span id="next-up-preview">Next: Session 2</span>
+            <!-- Stopwatch / Timer Widget -->
+            <div class="stopwatch-widget">
+              <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 1rem;">
+                <span style="font-size: 0.95rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;"><i data-lucide="timer" style="width:16px; margin-right:6px; vertical-align: text-bottom;"></i> Productivity Timer</span>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button class="cycle-btn active" onclick="setTimerMode('stopwatch')" id="btn-mode-sw" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">SW</button>
+                  <button class="cycle-btn" onclick="setTimerMode('timer')" id="btn-mode-tm" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">Timer</button>
+                </div>
+              </div>
+              
+              <div class="sw-display" id="sw-display">00:00.00</div>
+              
+              <div id="timer-input-area" style="display: none; gap: 0.75rem; margin-bottom: 0.5rem; width: 100%; justify-content: center;">
+                <input type="number" id="timer-min-input" class="form-control" placeholder="Minutes" style="width: 100px; padding: 0.75rem; text-align: center; font-weight: 700;">
+                <button class="btn-secondary" onclick="setTimerValue()" style="padding: 0.75rem 1.5rem;">Set</button>
+              </div>
+
+              <div class="sw-controls">
+                <button class="sw-btn start" id="sw-btn-start" onclick="toggleStopwatch()">Start</button>
+                <button class="sw-btn" onclick="resetStopwatch()">Reset</button>
+              </div>
             </div>
           </div>
 
-          <!-- Day Session Sequence -->
           <div class="glass-panel">
-            <div class="timeline-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
               <div>
-                <h2 style="font-size: 1.3rem; font-weight: 800;">Daily Sequence</h2>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">Select cycle day to preview periods</p>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">Daily Sequence</h2>
+                <p style="font-size: 0.95rem; color: var(--text-muted);">View and manage the day's periods.</p>
               </div>
-              <div class="cycle-pills" id="day-picker-pills">
-                <!-- Javascript rendered -->
-              </div>
+              <div style="display:flex; gap:0.5rem; flex-wrap: wrap; justify-content: flex-end;" id="day-picker-pills"></div>
             </div>
-
-            <div class="timeline-list" id="timeline-cards-container">
-              <!-- Rendered via JS -->
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- TAB 2: MASTER CALENDAR & CYCLE MAPPER -->
-      <div id="tab-calendar" class="tab-pane">
-        <div class="calendar-container">
-          <div class="glass-panel">
-            <div class="calendar-header-nav">
-              <div class="month-title" id="cal-month-year-text">September 2026</div>
-              <div style="display:flex; gap:0.75rem;">
-                <button class="icon-btn" onclick="prevMonth()"><i data-lucide="chevron-left"></i></button>
-                <button class="btn-secondary" style="padding:0.5rem 1.25rem; font-size:0.85rem;" onclick="jumpToToday()">Today</button>
-                <button class="icon-btn" onclick="nextMonth()"><i data-lucide="chevron-right"></i></button>
-              </div>
-            </div>
-
-            <div class="calendar-grid-header">
-              <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-            </div>
-
-            <div class="calendar-days-grid" id="calendar-days-box">
-              <!-- Rendered via JS -->
-            </div>
-          </div>
-
-          <!-- Selected Day Inspector Sidebar -->
-          <div class="glass-panel" style="display:flex; flex-direction:column; gap:1.5rem; background: linear-gradient(180deg, rgba(30, 32, 42, 0.5) 0%, rgba(15, 16, 22, 0.9) 100%); border-left: 2px solid var(--gemini-purple);">
-            <div>
-              <span class="session-tag" id="selected-date-cycle">Cycle Day 1</span>
-              <h3 style="font-size: 1.5rem; font-weight:800; margin-top:0.5rem;" id="selected-date-title">Today</h3>
-            </div>
-
-            <div class="form-group">
-              <label>Assign Cycle Day (Global Map)</label>
-              <select class="form-control" id="date-cycle-selector" onchange="assignCycleToSelectedDate(this.value)" disabled>
-                <option value="1">Orbit Day 1</option>
-                <option value="2">Orbit Day 2</option>
-                <option value="3">Orbit Day 3</option>
-                <option value="4">Orbit Day 4</option>
-                <option value="5">Orbit Day 5</option>
-                <option value="6">Orbit Day 6</option>
-                <option value="7">Orbit Day 7</option>
-                <option value="OFF">No Classes (Holiday/Weekend)</option>
-              </select>
-            </div>
-
-            <hr style="border-color: var(--border-glow); border-style: solid;">
-
-            <div>
-              <h4 style="font-size: 1rem; font-weight: 700; color: var(--gemini-light-blue); margin-bottom: 0.75rem; display:flex; align-items:center; gap:0.5rem;">
-                <i data-lucide="bell" style="width:16px;"></i> Events & Reminders
-              </h4>
-              <div id="day-events-list" style="display:flex; flex-direction:column; gap:0.6rem; max-height: 200px; overflow-y:auto; padding-right:0.5rem;">
-                <!-- List -->
-              </div>
-            </div>
-
-            <button class="btn-primary" id="add-event-btn" onclick="requireAdmin(addEventModal)" style="display: none; margin-top: auto;">
-              <i data-lucide="plus"></i> Add Calendar Event
-            </button>
+            
+            <div class="timeline-list" id="timeline-cards-container"></div>
+            
+            ${isAdmin ? `<button class="btn-secondary" style="margin-top: 1.5rem; width: 100%; justify-content:center;" onclick="openTimingModal()"><i data-lucide="clock"></i> Adjust Global Timings</button>` : ''}
           </div>
         </div>
       </div>
 
-      <!-- TAB 3: FULL MATRIX TIMETABLE -->
+      <div id="tab-notes" class="tab-pane">
+        <div class="glass-panel" style="padding: 0; border: none; background: transparent; box-shadow: none;">
+          <div class="notes-grid">
+            
+            <!-- Notes Sidebar -->
+            <div class="notes-sidebar">
+              <div class="notes-tabs">
+                <div class="note-tab active" id="note-tab-public" onclick="switchNoteTab('public')">Class Notes</div>
+                <div class="note-tab" id="note-tab-personal" onclick="switchNoteTab('personal')">My Drive</div>
+              </div>
+              <div class="notes-list" id="notes-list-sidebar">
+                <!-- JS populated -->
+              </div>
+              <div style="padding: 1.25rem; border-top: 1px solid var(--border-light);">
+                <button class="btn-primary" style="width: 100%; border-radius: var(--radius-sm);" onclick="createNewNote()">
+                  <i data-lucide="plus-circle"></i> Create New Doc
+                </button>
+              </div>
+            </div>
+
+            <!-- Note Editor/Viewer -->
+            <div class="notes-main" id="note-viewer-area" style="display: none;">
+              <div class="note-editor">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 1rem;">
+                  <input type="text" id="active-note-title" class="note-title-input" placeholder="Document Title...">
+                  <div style="display: flex; gap: 0.5rem; flex-shrink: 0;" id="note-actions-container">
+                    <!-- Actions inserted via JS -->
+                  </div>
+                </div>
+                
+                <textarea id="active-note-body" class="note-body-input" placeholder="Start typing your study material, meeting notes, or code snippets here..."></textarea>
+                
+                <div style="margin-top: auto; border-top: 1px solid var(--border-light); padding-top: 1.5rem;">
+                  <button class="btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem;" onclick="toggleAttachmentFields()"><i data-lucide="paperclip" style="width:16px;"></i> Attach Media Links</button>
+                  <div id="attachment-fields" style="display: none; margin-top: 1rem; animation: paneEnter 0.3s ease forwards;">
+                    <input type="text" id="active-note-image" class="note-attachment-input" placeholder="Paste Image URL (e.g., https://...)">
+                    <input type="text" id="active-note-youtube" class="note-attachment-input" placeholder="Paste YouTube Link (e.g., https://youtube.com/...)">
+                  </div>
+                </div>
+
+                <div class="attachment-preview" id="active-note-preview" style="margin-top: 1rem;">
+                  <!-- Image or iframe injected here -->
+                </div>
+              </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div class="notes-main" id="note-empty-state" style="align-items: center; justify-content: center; color: var(--text-muted); background: var(--bg-surface-solid);">
+              <div style="background: rgba(66, 133, 244, 0.1); padding: 2rem; border-radius: 50%; margin-bottom: 1.5rem;">
+                <i data-lucide="file-text" style="width: 64px; height: 64px; color: var(--brand-primary);"></i>
+              </div>
+              <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">No Document Selected</h3>
+              <p style="font-size: 1rem;">Select a file from the sidebar or create a new one.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <div id="tab-timetable" class="tab-pane">
-        <div class="glass-panel">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <div class="glass-panel" style="overflow-x: auto;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
             <div>
-              <h2 style="font-size: 1.4rem; font-weight: 800;">3CS Master Schedule Matrix</h2>
-              <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.2rem;">Click any session box to edit subject, teacher, or classroom globally.</p>
+              <h2 style="font-size: 1.75rem; font-weight: 800;">Master Timetable Matrix</h2>
+              <p style="color: var(--text-muted); margin-top: 0.25rem;">Full view of the 7-day cycle.</p>
             </div>
             <button class="btn-secondary" id="reset-schedule-btn" onclick="requireAdmin(resetScheduleData)" style="display: none;">
               <i data-lucide="rotate-ccw" style="width:16px;"></i> Reset Defaults
             </button>
           </div>
-
-          <div class="timetable-grid-wrapper">
-            <table class="timetable-matrix">
-              <thead>
-                <tr>
-                  <th>Session / Day</th>
-                  <th>Day 1</th>
-                  <th>Day 2</th>
-                  <th>Day 3</th>
-                  <th>Day 4</th>
-                  <th>Day 5</th>
-                  <th>Day 6</th>
-                  <th>Day 7</th>
-                </tr>
-              </thead>
-              <tbody id="matrix-tbody">
-                <!-- Javascript populated -->
-              </tbody>
-            </table>
-          </div>
+          
+          <table class="timetable-matrix">
+            <thead>
+              <tr>
+                <th style="width: 120px;">Time / Period</th>
+                <th>Day 1</th><th>Day 2</th><th>Day 3</th><th>Day 4</th><th>Day 5</th><th>Day 6</th><th>Day 7</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-tbody"></tbody>
+          </table>
         </div>
       </div>
 
-      <!-- TAB 4: TASKS & ASSIGNMENTS -->
       <div id="tab-tasks" class="tab-pane">
         <div class="glass-panel">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; border-bottom: 1px solid var(--border-light); padding-bottom: 1.5rem;">
             <div>
-              <h2 style="font-size: 1.4rem; font-weight: 800;">Academic Tasks & To-Dos</h2>
-              <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.2rem;">Stay on top of homework, projects, and study goals. (Private to you)</p>
+              <h2 style="font-size: 1.75rem; font-weight: 800;">Assignments & Tasks</h2>
+              <p style="font-size: 1rem; color: var(--text-muted); margin-top: 0.25rem;">Track personal homework and global class assignments.</p>
             </div>
-            <button class="btn-primary" onclick="openNewTaskModal()">
-              <i data-lucide="plus"></i> New Task
-            </button>
+            <div style="display:flex; gap: 1rem;">
+              <button class="btn-secondary" id="btn-add-global-task" onclick="requireAdmin(openNewGlobalTaskModal)" style="display:none; border-color: var(--brand-accent); color: var(--brand-accent);">
+                <i data-lucide="globe"></i> Class Assignment
+              </button>
+              <button class="btn-primary" onclick="openNewTaskModal()">
+                <i data-lucide="plus"></i> My Task
+              </button>
+            </div>
           </div>
 
-          <div id="tasks-container-list">
-            <!-- JS populated -->
+          <div style="margin-bottom: 1rem; font-size: 1.1rem; font-weight: 800; color: var(--brand-accent); display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">
+            <i data-lucide="globe" style="width: 20px;"></i> Class-Wide Assignments
           </div>
+          <div id="global-tasks-container-list" style="margin-bottom: 3rem;"></div>
+
+          <div style="margin-bottom: 1rem; font-size: 1.1rem; font-weight: 800; color: var(--brand-primary); display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">
+            <i data-lucide="user" style="width: 20px;"></i> My Personal Tasks
+          </div>
+          <div id="personal-tasks-container-list"></div>
         </div>
       </div>
 
-      <!-- TAB 5: SUBJECT & ROOM DIRECTORY -->
       <div id="tab-directory" class="tab-pane">
         <div class="glass-panel">
-          <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.4rem;">3CS Course Directory</h2>
-          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem;">Classroom codes and instructor directory.</p>
-
-          <div class="subject-grid" id="subject-directory-cards">
-            <!-- JS Populated -->
-          </div>
+          <h2 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem;">Course Directory</h2>
+          <p style="color: var(--text-muted); margin-bottom: 2rem;">Overview of all subjects in the 3CS curriculum.</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;" id="subject-directory-cards"></div>
         </div>
       </div>
 
     </main>
-
-    <footer>
-      Class 3CS Orbital Schedule • Cloud Synced with Firebase • Gemini Premium Interface
-      <div style="margin-top: 0.75rem;">
-        <i data-lucide="lock" onclick="openAdminLogin()" style="cursor:pointer; width:16px; opacity:0.3; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3" title="Admin Login"></i>
-      </div>
-    </footer>
-
   </div>
 
-  <!-- NOTES DRAWER -->
-  <div class="notes-drawer" id="notes-drawer-panel">
-    <div class="notes-header">
-      <h2 style="font-size: 1.2rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.6rem;">
-        <i data-lucide="notebook-pen" style="color: var(--gemini-pink);"></i> Orbit Notepad
-      </h2>
-      <button class="icon-btn" onclick="toggleNotesDrawer()"><i data-lucide="x"></i></button>
-    </div>
-    <div class="notes-tabs">
-      <button class="note-tab-btn active" id="tab-btn-public" onclick="switchNotesTab('public')">Public Notes</button>
-      <button class="note-tab-btn" id="tab-btn-private" onclick="switchNotesTab('private')">Private Notes</button>
-    </div>
-    <div class="notes-content" id="notes-list-container">
-      <!-- JS populated notes -->
-    </div>
-    <div class="note-input-area">
-      <textarea id="new-note-text" class="form-control" placeholder="Write a note here..." rows="3" style="resize: none;"></textarea>
-      <button class="btn-primary" onclick="submitNote()" style="width: 100%;">Post Note</button>
-    </div>
-  </div>
-
-  <!-- MODAL: ADMIN LOGIN -->
+  <!-- Admin Login Modal -->
   <div class="modal-backdrop" id="modal-admin-login">
-    <div class="modal-box" style="max-width: 420px; text-align: center;">
-      <div class="modal-header" style="justify-content: center; position: relative;">
-        <div class="modal-title" style="color: var(--gemini-pink);">Admin Access Required</div>
-        <button class="icon-btn" onclick="closeModal('modal-admin-login')" style="position: absolute; right: 0; top: -10px;"><i data-lucide="x"></i></button>
+    <div class="modal-box" style="max-width: 400px; text-align: center; align-items: center;">
+      <div style="background: rgba(217, 101, 112, 0.1); padding: 1rem; border-radius: 50%; margin-bottom: 0.5rem;">
+        <i data-lucide="shield" style="width: 48px; height: 48px; color: var(--brand-accent);"></i>
       </div>
-      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Enter the global admin passcode to edit the schedule for everyone.</p>
-      <div class="form-group">
-        <input type="password" id="admin-passcode-input" class="form-control" placeholder="Enter Secret Code" style="text-align: center; font-size: 1.3rem; letter-spacing: 5px;">
-      </div>
-      <div style="margin-top:0.75rem;">
-        <button class="btn-primary" style="width: 100%; background: var(--grad-glow); padding: 1rem;" onclick="verifyAdminCode()">Unlock Global Controls</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: EDIT SESSION ITEM -->
-  <div class="modal-backdrop" id="modal-edit-session">
-    <div class="modal-box">
-      <div class="modal-header">
-        <div class="modal-title">Edit Class Period</div>
-        <button class="icon-btn" onclick="closeModal('modal-edit-session')"><i data-lucide="x"></i></button>
-      </div>
-      <div class="form-group">
-        <label>Subject Code / Title</label>
-        <input type="text" id="edit-sub-code" class="form-control" placeholder="e.g. DA&M">
-      </div>
-      <div class="form-group">
-        <label>Classroom Location</label>
-        <input type="text" id="edit-sub-room" class="form-control" placeholder="e.g. DAS">
-      </div>
-      <div class="form-group">
-        <label>Teacher Initials</label>
-        <input type="text" id="edit-sub-teacher" class="form-control" placeholder="e.g. CST / CC">
-      </div>
-      <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1rem;">
-        <button class="btn-secondary" onclick="closeModal('modal-edit-session')">Cancel</button>
-        <button class="btn-primary" onclick="saveSessionEdit()">Save Changes</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: TIMING & TIME TRAVEL ADJUSTER -->
-  <div class="modal-backdrop" id="modal-timing">
-    <div class="modal-box" style="max-width: 650px;">
-      <div class="modal-header">
-        <div class="modal-title">Schedule Timing & Simulation</div>
-        <button class="icon-btn" onclick="closeModal('modal-timing')"><i data-lucide="x"></i></button>
-      </div>
+      <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">Admin Authorization</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Enter the passcode to unlock global editing capabilities.</p>
       
-      <div class="form-group">
-        <label style="color:var(--gemini-pink);">Time Simulation (Time Travel)</label>
-        <div style="display:flex; gap:0.75rem;">
-          <input type="time" id="sim-time-input" class="form-control" style="flex:1;">
-          <button class="btn-primary" onclick="applyTimeSimulation()">Apply Test Time</button>
-          <button class="btn-secondary" onclick="clearTimeSimulation()">Real Time</button>
-        </div>
-      </div>
-
-      <hr style="border-color:var(--border-glow); margin: 1rem 0;">
-
-      <div style="max-height: 280px; overflow-y: auto; padding-right:0.5rem; display:flex; flex-direction:column; gap:0.75rem;" id="timing-list-editor">
-        <!-- JS rendered timing inputs -->
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1rem;">
-        <button class="btn-secondary" onclick="closeModal('modal-timing')">Close</button>
-        <button class="btn-primary" id="save-timing-btn" onclick="saveCustomTimings()" style="display: none;">Save Custom Timings</button>
+      <input type="password" id="admin-passcode-input" class="form-control" placeholder="Passcode" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-family: 'JetBrains Mono'; padding: 1rem;">
+      
+      <div style="display: flex; gap: 1rem; width: 100%; margin-top: 1rem;">
+        <button class="btn-secondary" style="flex: 1; justify-content: center;" onclick="closeModal('modal-admin-login')">Cancel</button>
+        <button class="btn-primary" style="flex: 1; justify-content: center; background: var(--brand-accent);" onclick="verifyAdminCode()">Unlock</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: NEW TASK -->
+  <!-- New Task Modal -->
   <div class="modal-backdrop" id="modal-new-task">
     <div class="modal-box">
-      <div class="modal-header">
-        <div class="modal-title">Create Task / Homework</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 1rem;">
+        <h3 id="modal-task-title" style="font-size: 1.5rem; font-weight: 800;">Add Task</h3>
         <button class="icon-btn" onclick="closeModal('modal-new-task')"><i data-lucide="x"></i></button>
       </div>
-      <div class="form-group">
-        <label>Task Description</label>
-        <input type="text" id="task-input-title" class="form-control" placeholder="e.g. Complete DA&M Project Report">
+      
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <label style="font-weight: 700; font-size: 0.9rem; color: var(--text-muted);">Task Description</label>
+        <input type="text" id="task-input-title" class="form-control" placeholder="E.g., Read pages 40-55...">
       </div>
-      <div class="form-group">
-        <label>Associated Course</label>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <label style="font-weight: 700; font-size: 0.9rem; color: var(--text-muted);">Related Subject</label>
         <select class="form-control" id="task-input-subject">
           <option value="General">General</option>
-          <option value="DA&M">DA&M</option>
-          <option value="LA">LA</option>
-          <option value="FA">FA</option>
-          <option value="QR">QR</option>
-          <option value="S&T">S&T</option>
-          <option value="M">M</option>
-          <option value="Span">Span</option>
-          <option value="BS">BS</option>
-          <option value="CP">CP</option>
+          <option value="DA&M">DA&M</option><option value="LA">LA</option><option value="FA">FA</option>
+          <option value="QR">QR</option><option value="S&T">S&T</option><option value="M">M</option>
+          <option value="Span">Span</option><option value="BS">BS</option><option value="CP">CP</option>
         </select>
       </div>
-      <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1rem;">
+      
+      <input type="hidden" id="task-input-type" value="personal">
+      
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
         <button class="btn-secondary" onclick="closeModal('modal-new-task')">Cancel</button>
-        <button class="btn-primary" onclick="saveNewTask()">Add Task</button>
+        <button class="btn-primary" onclick="saveNewTask()">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Session Modal -->
+  <div class="modal-backdrop" id="modal-edit-session">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 1rem;">
+        <h3 style="font-size: 1.5rem; font-weight: 800;">Edit Matrix Cell</h3>
+        <button class="icon-btn" onclick="closeModal('modal-edit-session')"><i data-lucide="x"></i></button>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr; gap: 1.25rem;">
+        <div>
+          <label style="font-weight: 700; font-size: 0.9rem; color: var(--text-muted); display:block; margin-bottom:0.5rem;">Subject Code</label>
+          <input type="text" id="edit-sub-code" class="form-control" placeholder="e.g. DA&M">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label style="font-weight: 700; font-size: 0.9rem; color: var(--text-muted); display:block; margin-bottom:0.5rem;">Classroom</label>
+            <input type="text" id="edit-sub-room" class="form-control" placeholder="e.g. N2">
+          </div>
+          <div>
+            <label style="font-weight: 700; font-size: 0.9rem; color: var(--text-muted); display:block; margin-bottom:0.5rem;">Teacher Initials</label>
+            <input type="text" id="edit-sub-teacher" class="form-control" placeholder="e.g. JB">
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
+        <button class="btn-secondary" onclick="closeModal('modal-edit-session')">Cancel</button>
+        <button class="btn-primary" style="background: var(--brand-accent);" onclick="saveSessionEdit()">Save Globally</button>
       </div>
     </div>
   </div>
 
   <script>
     /* ==========================================================================
-       1. INITIAL DEFAULT DATA & STATE
+       THEMING & SPLASH SCREEN LOGIC
+       ========================================================================== */
+    function setTheme(themeName) {
+      document.body.setAttribute('data-theme', themeName);
+      localStorage.setItem('3cs_theme_v2', themeName);
+      
+      // Update toggle buttons to reflect new theme accent colors if needed
+      document.querySelectorAll('.nav-btn.active, .cycle-btn.active').forEach(btn => {
+        // Trigger a tiny reflow trick to re-apply gradients smoothly
+        btn.style.display = 'none';
+        btn.offsetHeight;
+        btn.style.display = '';
+      });
+    }
+    
+    // Load saved theme immediately to prevent flashing
+    const savedTheme = localStorage.getItem('3cs_theme_v2') || 'default';
+    setTheme(savedTheme);
+    document.getElementById('theme-selector').value = savedTheme;
+
+    // Spectacular Splash Screen Exit
+    window.addEventListener('load', () => {
+      // Artificial delay to show off the cool animation
+      setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        
+        // After splash is hidden, remove it from DOM to free memory
+        setTimeout(() => splash.remove(), 1000);
+      }, 2500); // 2.5s orbital viewing pleasure
+    });
+
+    /* ==========================================================================
+       STATE & DEFAULT DATA
        ========================================================================== */
     const defaultTimings = [
-      { id: 'S1', label: 'Session 1', start: '08:00', end: '08:55', type: 'class' },
-      { id: 'B1', label: 'Transit Break', start: '08:55', end: '09:00', type: 'break', name: 'Quick Transit' },
-      { id: 'S2', label: 'Session 2', start: '09:00', end: '09:55', type: 'class' },
-      { id: 'B2', label: 'Morning Recharge', start: '09:55', end: '10:05', type: 'break', name: 'Morning Break' },
-      { id: 'S3', label: 'Session 3', start: '10:05', end: '11:00', type: 'class' },
-      { id: 'B3', label: 'Transit Break', start: '11:00', end: '11:05', type: 'break', name: 'Quick Transit' },
-      { id: 'S4', label: 'Session 4', start: '11:05', end: '12:00', type: 'class' },
-      { id: 'LUNCH', label: 'Solar Lunch', start: '12:00', end: '13:00', type: 'break', name: 'Lunch Break 🍱' },
-      { id: 'S5', label: 'Session 5', start: '13:00', end: '13:55', type: 'class' },
-      { id: 'B4', label: 'Transit Break', start: '13:55', end: '14:05', type: 'break', name: 'Quick Transit' },
-      { id: 'S6', label: 'Session 6', start: '14:05', end: '15:00', type: 'class' }
+      { id: 'S1', label: 'Period 1', start: '08:00', end: '08:55', type: 'class' },
+      { id: 'B1', label: 'Passing', start: '08:55', end: '09:00', type: 'break', name: 'Passing Period' },
+      { id: 'S2', label: 'Period 2', start: '09:00', end: '09:55', type: 'class' },
+      { id: 'B2', label: 'Break', start: '09:55', end: '10:05', type: 'break', name: 'Morning Break' },
+      { id: 'S3', label: 'Period 3', start: '10:05', end: '11:00', type: 'class' },
+      { id: 'B3', label: 'Passing', start: '11:00', end: '11:05', type: 'break', name: 'Passing Period' },
+      { id: 'S4', label: 'Period 4', start: '11:05', end: '12:00', type: 'class' },
+      { id: 'LUNCH', label: 'Lunch', start: '12:00', end: '13:00', type: 'break', name: 'Lunch Break' },
+      { id: 'S5', label: 'Period 5', start: '13:00', end: '13:55', type: 'class' },
+      { id: 'B4', label: 'Passing', start: '13:55', end: '14:05', type: 'break', name: 'Passing Period' },
+      { id: 'S6', label: 'Period 6', start: '14:05', end: '15:00', type: 'class' }
     ];
 
     const defaultSchedule = {
@@ -1518,39 +1847,38 @@
       3: { S1: ['FA', 'FAS', 'KS'], S2: ['LA', 'D1', 'KG'], S3: ['M', 'MS', 'AK'], S4: ['M', 'MS', 'AK'], S5: ['PE', 'D3', 'CW'], S6: ['S&T', 'D4', 'BM'] },
       4: { S1: ['FA', 'FAS', 'KS'], S2: ['M', 'MS', 'AK'], S3: ['DA&M', 'DAS', 'CST / CC'], S4: ['LS', 'N3', 'DD'], S5: ['LA', 'D1', 'KG'], S6: ['QR', 'D2', 'JM'] },
       5: { S1: ['LA', 'D1', 'KG'], S2: ['DA&M', 'DAS', 'CST / CC'], S3: ['QR', 'D2', 'JM'], S4: ['PE', 'D3', 'CW'], S5: ['CP', 'N4', 'KC'], S6: ['CP', 'N4', 'KC'] },
-      6: { S1: ['LA', 'D1', 'KG'], S2: ['DA&M', 'DAS', 'CST / CC'], S3: ['DA&M', 'DAS', 'CST / CC'], S4: ['S&T', 'D4', 'BM'], S5: ['QR', 'D2', 'JM'], S6: ['Digital A Arts Fine', 'MS', 'CC'] },
-      7: { S1: ['DA&M', 'DAS', 'CST / CC'], S2: ['BS', 'N3', 'DD'], S3: ['S&T', 'D4', 'BM'], S4: ['QR', 'D2', 'JM'], S5: ['PLC', 'Not listed', 'Staff'], S6: ['PLC', 'Not listed', 'Staff'] }
+      6: { S1: ['LA', 'D1', 'KG'], S2: ['DA&M', 'DAS', 'CST / CC'], S3: ['DA&M', 'DAS', 'CST / CC'], S4: ['S&T', 'D4', 'BM'], S5: ['QR', 'D2', 'JM'], S6: ['Digital Fine Arts', 'MS', 'CC'] },
+      7: { S1: ['DA&M', 'DAS', 'CST / CC'], S2: ['BS', 'N3', 'DD'], S3: ['S&T', 'D4', 'BM'], S4: ['QR', 'D2', 'JM'], S5: ['PLC', 'Study', 'Staff'], S6: ['PLC', 'Study', 'Staff'] }
     };
 
     const courseCatalog = [
-      { code: 'DA&M', name: 'Data Analysis & Modeling', desc: 'Focuses on statistics, database logic, and analytical problem solving.', icon: 'database' },
-      { code: 'LA', name: 'Language Arts', desc: 'Literature analysis, structured writing, and verbal expression.', icon: 'book' },
-      { code: 'FA', name: 'Fine Arts / Foundation', desc: 'Creative studio exploration and digital design methodologies.', icon: 'palette' },
+      { code: 'DA&M', name: 'Data Analysis & Modeling', desc: 'Statistics, database logic, and analytical problem solving using modern computational tools.', icon: 'database' },
+      { code: 'LA', name: 'Language Arts', desc: 'Literature analysis, structured writing, and advanced expression.', icon: 'book' },
+      { code: 'FA', name: 'Fine Arts / Foundation', desc: 'Creative studio exploration, physical mediums, and digital design.', icon: 'palette' },
       { code: 'QR', name: 'Quantitative Reasoning', desc: 'Advanced problem solving, logic puzzles, and applied mathematics.', icon: 'calculator' },
-      { code: 'S&T', name: 'Science & Technology', desc: 'Physical science, engineering principles, and lab experimentation.', icon: 'cpu' },
-      { code: 'M', name: 'Mathematics', desc: 'Algebraic structures, functions, and geometric proofs.', icon: 'binary' },
-      { code: 'Span', name: 'Spanish Foreign Lang', desc: 'Conversational fluency, grammar systems, and cultural study.', icon: 'globe' },
-      { code: 'BS', name: 'Behavioral Science', desc: 'Psychology, social structures, and human behavior.', icon: 'brain' },
-      { code: 'PE', name: 'Physical Education', desc: 'Fitness training, health wellness, and athletic team dynamics.', icon: 'activity' },
-      { code: 'CP', name: 'Computer Programming', desc: 'Software development, syntax fundamentals, and algorithmic logic.', icon: 'code' },
-      { code: 'PLC', name: 'Personal Learning Community', desc: 'Guided study hall, project collaboration, and advisor check-ins.', icon: 'users' }
+      { code: 'S&T', name: 'Science & Technology', desc: 'Physical science, engineering principles, and rigorous experimentation.', icon: 'cpu' },
+      { code: 'M', name: 'Mathematics', desc: 'Algebraic structures, functions, and complex geometric proofs.', icon: 'sigma' },
+      { code: 'Span', name: 'Spanish', desc: 'Conversational fluency, grammar systems, and cultural immersion.', icon: 'globe' },
+      { code: 'BS', name: 'Behavioral Science', desc: 'Psychology, social structures, and the study of human behavior.', icon: 'brain' },
+      { code: 'PE', name: 'Physical Education', desc: 'Fitness training, health wellness, and team athletics.', icon: 'activity' },
+      { code: 'CP', name: 'Computer Programming', desc: 'Software development, syntax, and algorithmic logic implementation.', icon: 'code' },
+      { code: 'PLC', name: 'Study Hall', desc: 'Guided study, project collaboration, and teacher check-ins.', icon: 'users' },
+      { code: 'FL&E', name: 'Financial Literacy', desc: 'Economics, personal finance, and enterprise.', icon: 'pie-chart' },
+      { code: 'LS', name: 'Life Skills', desc: 'Practical applications for daily adult life.', icon: 'heart' }
     ];
 
     let state = {
       timings: JSON.parse(JSON.stringify(defaultTimings)),
       schedule: JSON.parse(JSON.stringify(defaultSchedule)),
       tasks: [],
-      dateCycleMap: {}, // 'YYYY-MM-DD' => 1..7
-      events: {}, // 'YYYY-MM-DD' => [{title, type}]
-      globalReminders: [], // [{id, text}]
-      globalNotes: [], // [{id, text, timestamp}]
-      privateNotes: [], // [{id, text, timestamp}]
-      selectedDayView: 1, // 1..7 for dashboard view
-      selectedCalDate: new Date(),
-      audioEnabled: true,
-      simulationTime: null, // null or "HH:MM"
-      activeEditingCell: null, // {day, sessionId}
-      activeNotesTab: 'public'
+      globalTasks: [], 
+      globalAnnouncements: [], 
+      globalNotes: [], 
+      privateNotes: [], 
+      selectedDayView: 1, 
+      activeEditingCell: null,
+      notesActiveTab: 'public', 
+      activeNoteId: null,
     };
 
     let isAdmin = false;
@@ -1558,9 +1886,6 @@
     let firebaseDb = null;
     let currentUser = null;
 
-    /* ==========================================================================
-       2. FIREBASE PERSISTENCE SETUP
-       ========================================================================== */
     async function setupFirebase() {
       if (typeof window.FirebaseSDK === 'undefined') return;
       const { initializeApp, getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, getFirestore, doc, setDoc, onSnapshot } = window.FirebaseSDK;
@@ -1584,222 +1909,94 @@
           if (user) {
             const appId = typeof __app_id !== 'undefined' ? __app_id : '3cs-app';
             
-            // Global Public Sync (Schedule, Timings, Calendar, Reminders)
-            const globalDocRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'config', 'global_state');
+            // Global Sync Listener
+            const globalDocRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'config', 'global_state_v2');
             onSnapshot(globalDocRef, (snap) => {
               if (snap.exists()) {
                 const data = snap.data();
                 if (data.schedule) state.schedule = data.schedule;
-                if (data.timings) state.timings = data.timings;
-                if (data.dateCycleMap) state.dateCycleMap = data.dateCycleMap;
-                if (data.events) state.events = data.events;
-                if (data.globalReminders) state.globalReminders = data.globalReminders;
+                if (data.globalTasks) state.globalTasks = data.globalTasks;
+                if (data.globalAnnouncements) state.globalAnnouncements = data.globalAnnouncements;
                 if (data.globalNotes) state.globalNotes = data.globalNotes;
                 renderAll();
-                if (document.getElementById('notes-drawer-panel').classList.contains('open')) renderNotesList();
-              } else if (isAdmin) {
-                saveGlobalToCloud(); // Init global if admin is first
-              }
-            }, (err) => console.log('Firestore Global sync error:', err));
+              } else if (isAdmin) saveGlobalToCloud();
+            });
 
-            // Private User Sync (Tasks & Notes)
-            const userDocRef = doc(firebaseDb, 'artifacts', appId, 'users', user.uid, 'user_schedule_data', 'config');
+            // Private Sync Listener
+            const userDocRef = doc(firebaseDb, 'artifacts', appId, 'users', user.uid, 'user_schedule_data', 'config_v2');
             onSnapshot(userDocRef, (snap) => {
               if (snap.exists()) {
                 const data = snap.data();
                 if (data.tasks) state.tasks = data.tasks;
                 if (data.privateNotes) state.privateNotes = data.privateNotes;
                 renderTasks();
-                if (document.getElementById('notes-drawer-panel').classList.contains('open')) renderNotesList();
-              } else {
-                savePrivateToCloud(); 
-              }
-            }, (err) => console.log('Firestore Private sync error:', err));
+                renderNotesList();
+              } else savePrivateToCloud(); 
+            });
           }
         });
-      } catch(e) {
-        console.warn('Firebase sync offline fallback:', e);
-      }
+      } catch(e) { console.warn('Firebase sync offline fallback', e); }
     }
 
     async function saveGlobalToCloud() {
       if (!firebaseDb || !currentUser) return;
       const { doc, setDoc } = window.FirebaseSDK;
       const appId = typeof __app_id !== 'undefined' ? __app_id : '3cs-app';
-      const globalDocRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'config', 'global_state');
+      const globalDocRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'config', 'global_state_v2');
       
       try {
         await setDoc(globalDocRef, {
           schedule: state.schedule,
-          timings: state.timings,
-          dateCycleMap: state.dateCycleMap,
-          events: state.events,
-          globalReminders: state.globalReminders || [],
+          globalTasks: state.globalTasks || [],
+          globalAnnouncements: state.globalAnnouncements || [],
           globalNotes: state.globalNotes || [],
-          updatedAt: new Date().toISOString(),
-          updatedBy: currentUser.uid
+          updatedAt: new Date().toISOString()
         }, { merge: true });
-      } catch (e) {
-        console.error('Error saving global data to Firestore:', e);
-      }
+      } catch (e) { console.error("Global Save Error:", e); }
     }
 
     async function savePrivateToCloud() {
       if (!firebaseDb || !currentUser) return;
       const { doc, setDoc } = window.FirebaseSDK;
       const appId = typeof __app_id !== 'undefined' ? __app_id : '3cs-app';
-      const userDocRef = doc(firebaseDb, 'artifacts', appId, 'users', currentUser.uid, 'user_schedule_data', 'config');
+      const userDocRef = doc(firebaseDb, 'artifacts', appId, 'users', currentUser.uid, 'user_schedule_data', 'config_v2');
       
       try {
         await setDoc(userDocRef, {
-          tasks: state.tasks,
+          tasks: state.tasks || [],
           privateNotes: state.privateNotes || [],
           updatedAt: new Date().toISOString()
         }, { merge: true });
-      } catch (e) {
-        console.error('Error saving private data to Firestore:', e);
-      }
+      } catch (e) { console.error("Private Save Error:", e); }
     }
 
-    /* ==========================================================================
-       2.5 ADMIN AUTH & SECURITY
-       ========================================================================== */
     function requireAdmin(actionFn) {
-      if (isAdmin) {
-        actionFn();
-      } else {
-        pendingAdminAction = actionFn;
-        openAdminLogin();
-      }
+      if (isAdmin) actionFn();
+      else { pendingAdminAction = actionFn; openAdminLogin(); }
     }
-
+    
     function openAdminLogin() {
       document.getElementById('admin-passcode-input').value = '';
       document.getElementById('modal-admin-login').classList.add('open');
       setTimeout(() => document.getElementById('admin-passcode-input').focus(), 100);
     }
-
+    
     function verifyAdminCode() {
-      const input = document.getElementById('admin-passcode-input').value;
-      if (input === '987345') {
+      if (document.getElementById('admin-passcode-input').value === '987345') {
         isAdmin = true;
         document.getElementById('admin-status-badge').classList.add('visible');
         document.getElementById('add-global-announcement-btn').style.display = 'inline-flex';
+        document.getElementById('btn-add-global-task').style.display = 'inline-flex';
+        const resetBtn = document.getElementById('reset-schedule-btn');
+        if(resetBtn) resetBtn.style.display = 'inline-flex';
         closeModal('modal-admin-login');
         renderAll();
-        saveGlobalToCloud(); // ensure cloud exists
-        
-        if (pendingAdminAction) {
-          pendingAdminAction();
-          pendingAdminAction = null;
-        }
+        if (pendingAdminAction) { pendingAdminAction(); pendingAdminAction = null; }
       } else {
-        alert('Access Denied: Incorrect Passcode');
-        document.getElementById('admin-passcode-input').value = '';
+        const input = document.getElementById('admin-passcode-input');
+        input.style.border = '2px solid var(--brand-accent)';
+        setTimeout(() => input.style.border = '', 500);
       }
-    }
-
-    /* ==========================================================================
-       3. AMBIENT CANVAS SPARKLE BACKGROUND
-       ========================================================================== */
-    function initCanvas() {
-      const canvas = document.getElementById('bg-canvas');
-      const ctx = canvas.getContext('2d');
-      let width, height;
-      let particles = [];
-
-      function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-      }
-      window.addEventListener('resize', resize);
-      resize();
-
-      for (let i = 0; i < 55; i++) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          radius: Math.random() * 2.5 + 0.5,
-          alpha: Math.random(),
-          speed: Math.random() * 0.3 + 0.1,
-          color: ['#a8c7fa', '#9b72cb', '#d96570', '#c3edd2'][Math.floor(Math.random() * 4)]
-        });
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, width, height);
-        particles.forEach(p => {
-          p.alpha += p.speed * 0.01;
-          const a = (Math.sin(p.alpha) + 1) / 2;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = a * 0.4;
-          ctx.shadowBlur = 15;
-          ctx.shadowColor = p.color;
-          ctx.fill();
-        });
-        requestAnimationFrame(draw);
-      }
-      draw();
-    }
-
-    /* ==========================================================================
-       3.5 GLOBAL REMINDERS / ANNOUNCEMENTS
-       ========================================================================== */
-    function renderGlobalReminders() {
-      const container = document.getElementById('global-reminders-container');
-      if (!state.globalReminders || state.globalReminders.length === 0) {
-        container.style.display = 'none';
-        return;
-      }
-
-      container.style.display = 'flex';
-      container.innerHTML = state.globalReminders.map(r => `
-        <div class="reminder-card">
-          <div class="reminder-content">
-            <div class="reminder-icon">
-              <i data-lucide="megaphone" style="width:18px; height:18px;"></i>
-            </div>
-            <div>
-              <div style="font-size: 0.75rem; color: var(--gemini-pink); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Global Transmission</div>
-              <div style="font-size: 1.05rem; font-weight: 600; color: #fff;">${r.text}</div>
-            </div>
-          </div>
-          ${isAdmin ? `<button class="icon-btn" style="width:32px; height:32px;" onclick="removeGlobalAnnouncement(${r.id})"><i data-lucide="x" style="width:14px;"></i></button>` : ''}
-        </div>
-      `).join('');
-      lucide.createIcons();
-    }
-
-    function addGlobalAnnouncement() {
-      if (!isAdmin) return;
-      const text = prompt('Enter a global announcement to broadcast to all viewers:');
-      if (text) {
-        if (!state.globalReminders) state.globalReminders = [];
-        state.globalReminders.push({ id: Date.now(), text });
-        renderGlobalReminders();
-        saveGlobalToCloud();
-      }
-    }
-
-    function removeGlobalAnnouncement(id) {
-      if (!isAdmin) return;
-      state.globalReminders = state.globalReminders.filter(r => r.id !== id);
-      renderGlobalReminders();
-      saveGlobalToCloud();
-    }
-
-    /* ==========================================================================
-       4. TIME ENGINE & LIVE TICKER
-       ========================================================================== */
-    function getCurrentTimeObj() {
-      const now = new Date();
-      if (state.simulationTime) {
-        const [h, m] = state.simulationTime.split(':').map(Number);
-        now.setHours(h, m, 0, 0);
-      }
-      return now;
     }
 
     function timeToMinutes(timeStr) {
@@ -1808,641 +2005,616 @@
     }
 
     function tickClock() {
-      const now = getCurrentTimeObj();
-      
-      // Update header time string
-      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      document.getElementById('live-time-display').innerText = state.simulationTime ? `[SIM] ${timeString}` : timeString;
+      const now = new Date();
+      document.getElementById('live-time-display').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-      // Calculate active period & progress
       const currentMin = now.getHours() * 60 + now.getMinutes();
       const currentSec = now.getSeconds();
-
-      let activeSlot = null;
+      let activeSlot = null; 
       let nextSlot = null;
 
       for (let i = 0; i < state.timings.length; i++) {
         const slot = state.timings[i];
-        const startM = timeToMinutes(slot.start);
-        const endM = timeToMinutes(slot.end);
-
-        if (currentMin >= startM && currentMin < endM) {
-          activeSlot = slot;
-          nextSlot = state.timings[i + 1] || null;
-          break;
-        } else if (currentMin < startM && !nextSlot) {
+        if (currentMin >= timeToMinutes(slot.start) && currentMin < timeToMinutes(slot.end)) {
+          activeSlot = slot; nextSlot = state.timings[i + 1] || null; break;
+        } else if (currentMin < timeToMinutes(slot.start) && !nextSlot) {
           nextSlot = slot;
         }
       }
 
-      updateDashboardClockUI(activeSlot, nextSlot, currentMin, currentSec);
-    }
-
-    function updateDashboardClockUI(activeSlot, nextSlot, currentMin, currentSec) {
       const ringCircle = document.getElementById('session-progress-circle');
-      const timerDisplay = document.getElementById('countdown-timer');
-      const timerLabel = document.getElementById('countdown-label');
-      const subjectName = document.getElementById('active-subject-name');
-      const roomName = document.getElementById('active-room-name');
-      const teacherName = document.getElementById('active-teacher-name');
-      const activeLabel = document.getElementById('active-session-label');
-      const nextPreview = document.getElementById('next-up-preview');
-
-      // Get current date's assigned cycle day or fallback to selectedDayView
-      const todayKey = getCurrentTimeObj().toISOString().split('T')[0];
-      const todayCycleDay = state.dateCycleMap[todayKey] || state.selectedDayView;
-      document.getElementById('orbit-cycle-indicator').innerText = `Orbit Day ${todayCycleDay}`;
-
       if (activeSlot) {
-        const startM = timeToMinutes(activeSlot.start);
-        const endM = timeToMinutes(activeSlot.end);
-        const totalSec = (endM - startM) * 60;
-        const elapsedSec = (currentMin - startM) * 60 + currentSec;
-        const remainingSec = totalSec - elapsedSec;
-
-        // Progress stroke ring math (dasharray 502 for r=80)
-        const progressFrac = elapsedSec / totalSec;
-        const offset = 502 - (502 * progressFrac);
+        const totalSec = (timeToMinutes(activeSlot.end) - timeToMinutes(activeSlot.start)) * 60;
+        const elapsedSec = (currentMin - timeToMinutes(activeSlot.start)) * 60 + currentSec;
+        // Circumference of r=90 is 565.48
+        const offset = 565.48 - (565.48 * (elapsedSec / totalSec));
         ringCircle.style.strokeDashoffset = offset;
-
-        // Remaining formatted text
-        const remMin = Math.floor(remainingSec / 60);
-        const remSec = remainingSec % 60;
-        timerDisplay.innerText = `${String(remMin).padStart(2, '0')}:${String(remSec).padStart(2, '0')}`;
-        timerLabel.innerText = 'Remaining';
-
+        
+        const remSec = totalSec - elapsedSec;
+        document.getElementById('countdown-timer').innerText = `${String(Math.floor(remSec/60)).padStart(2,'0')}:${String(remSec%60).padStart(2,'0')}`;
+        
+        document.getElementById('active-session-label').innerText = activeSlot.label;
         if (activeSlot.type === 'class') {
-          activeLabel.innerText = activeSlot.label;
-          const sessionDetails = state.schedule[todayCycleDay]?.[activeSlot.id];
-          if (sessionDetails) {
-            subjectName.innerText = sessionDetails[0];
-            roomName.innerText = sessionDetails[1];
-            teacherName.innerText = sessionDetails[2];
+          const det = state.schedule[state.selectedDayView]?.[activeSlot.id]; 
+          if (det) {
+            document.getElementById('active-subject-name').innerText = det[0];
+            document.getElementById('active-room-name').innerText = det[1];
+            document.getElementById('active-teacher-name').innerText = det[2];
           }
         } else {
-          activeLabel.innerText = activeSlot.label;
-          subjectName.innerText = activeSlot.name || 'Break / Transition';
-          roomName.innerText = 'Campus';
-          teacherName.innerText = 'Rest';
+          document.getElementById('active-subject-name').innerText = activeSlot.name || 'Break';
+          document.getElementById('active-room-name').innerText = 'Campus';
+          document.getElementById('active-teacher-name').innerText = '--';
         }
       } else {
-        // Outside official schedule hours
-        ringCircle.style.strokeDashoffset = 502;
-        timerDisplay.innerText = '--:--';
-        timerLabel.innerText = 'Orbit Idle';
-        activeLabel.innerText = 'No Active Class';
-        subjectName.innerText = 'Classes Completed';
-        roomName.innerText = '--';
-        teacherName.innerText = '--';
+        ringCircle.style.strokeDashoffset = 565.48;
+        document.getElementById('countdown-timer').innerText = '--:--';
+        document.getElementById('active-session-label').innerText = 'No Active Session';
+        document.getElementById('active-subject-name').innerText = 'School Closed';
+        document.getElementById('active-room-name').innerText = '--';
+        document.getElementById('active-teacher-name').innerText = '--';
       }
-
-      if (nextSlot) {
-        if (nextSlot.type === 'class') {
-          const nextDetails = state.schedule[todayCycleDay]?.[nextSlot.id];
-          nextPreview.innerText = `Next: ${nextSlot.label} - ${nextDetails ? nextDetails[0] : ''}`;
-        } else {
-          nextPreview.innerText = `Next: ${nextSlot.name || 'Break'}`;
-        }
-      } else {
-        nextPreview.innerText = 'End of Orbit Day';
-      }
-
-      highlightActiveTimelineCards(activeSlot ? activeSlot.id : null);
-    }
-
-    function highlightActiveTimelineCards(activeSlotId) {
-      document.querySelectorAll('.timeline-card').forEach(card => {
-        if (card.dataset.slotId === activeSlotId) {
-          card.classList.add('now-active');
-        } else {
-          card.classList.remove('now-active');
-        }
-      });
-    }
-
-    /* ==========================================================================
-       5. DASHBOARD & TIMELINE RENDER
-       ========================================================================== */
-    function renderDayPills() {
-      const container = document.getElementById('day-picker-pills');
-      let html = '';
-      for (let i = 1; i <= 7; i++) {
-        const active = i === state.selectedDayView ? 'active' : '';
-        html += `<button class="cycle-btn ${active}" onclick="selectDashboardDay(${i})">Day ${i}</button>`;
-      }
-      container.innerHTML = html;
-    }
-
-    function selectDashboardDay(dayNum) {
-      state.selectedDayView = dayNum;
-      renderDayPills();
-      renderTimeline();
-    }
-
-    function renderTimeline() {
-      const container = document.getElementById('timeline-cards-container');
-      const dayData = state.schedule[state.selectedDayView] || {};
       
-      let html = '';
-      state.timings.forEach(slot => {
-        if (slot.type === 'break') {
-          html += `
-            <div class="timeline-card break-card" data-slot-id="${slot.id}">
-              <div class="time-box">
-                <span class="time-text">${slot.start} - ${slot.end}</span>
-                <span style="font-size:0.75rem; color:var(--text-muted);">${slot.label}</span>
-              </div>
-              <div class="session-title-slot">
-                <span class="slot-title" style="font-size:1rem; font-weight:600; color:var(--text-muted);">${slot.name}</span>
-              </div>
-              <div><i data-lucide="coffee" style="width:20px; color:var(--text-dim);"></i></div>
-            </div>
-          `;
-        } else {
-          const session = dayData[slot.id] || ['Free Period', 'N/A', 'N/A'];
-          html += `
-            <div class="timeline-card" data-slot-id="${slot.id}">
-              <div class="time-box">
-                <span class="time-text">${slot.start} - ${slot.end}</span>
-                <span style="font-size:0.75rem; color:var(--gemini-purple); font-weight: 600;">${slot.label}</span>
-              </div>
-              <div class="session-title-slot">
-                <span class="slot-title">${session[0]}</span>
-                <div class="slot-meta">
-                  <span>📍 Room ${session[1]}</span>
-                  <span>👤 Teacher ${session[2]}</span>
-                </div>
-              </div>
-              ${isAdmin ? `
-              <button class="icon-btn" onclick="openEditSessionModal(${state.selectedDayView}, '${slot.id}')" title="Edit Period">
-                <i data-lucide="edit-3" style="width:16px;"></i>
-              </button>` : ''}
-            </div>
-          `;
-        }
+      document.querySelectorAll('.timeline-card').forEach(card => {
+        card.classList.toggle('now-active', activeSlot && card.dataset.slotId === activeSlot.id);
       });
+    }
 
-      container.innerHTML = html;
+    let swMode = 'stopwatch'; // 'stopwatch' | 'timer'
+    let swInterval = null;
+    let swStartTime = 0;
+    let swElapsed = 0; // ms
+    let isSwRunning = false;
+    let timerTarget = 0; // ms
+
+    function setTimerMode(mode) {
+      swMode = mode;
+      const btnSw = document.getElementById('btn-mode-sw');
+      const btnTm = document.getElementById('btn-mode-tm');
+      
+      if(mode === 'stopwatch') {
+        btnSw.classList.add('active');
+        btnTm.classList.remove('active');
+      } else {
+        btnTm.classList.add('active');
+        btnSw.classList.remove('active');
+      }
+      
+      document.getElementById('timer-input-area').style.display = mode === 'timer' && !isSwRunning ? 'flex' : 'none';
+      resetStopwatch();
+    }
+
+    function setTimerValue() {
+      const mins = parseInt(document.getElementById('timer-min-input').value) || 0;
+      timerTarget = mins * 60 * 1000;
+      swElapsed = timerTarget;
+      updateSwDisplay();
+    }
+
+    function toggleStopwatch() {
+      const btn = document.getElementById('sw-btn-start');
+      if (isSwRunning) {
+        clearInterval(swInterval);
+        isSwRunning = false;
+        btn.innerText = 'Start';
+        btn.classList.remove('stop');
+        btn.classList.add('start');
+      } else {
+        swStartTime = Date.now();
+        if (swMode === 'stopwatch') swStartTime -= swElapsed;
+        
+        isSwRunning = true;
+        btn.innerText = 'Pause';
+        btn.classList.remove('start');
+        btn.classList.add('stop');
+        document.getElementById('timer-input-area').style.display = 'none';
+
+        swInterval = setInterval(() => {
+          if (swMode === 'stopwatch') {
+            swElapsed = Date.now() - swStartTime;
+          } else {
+            const passed = Date.now() - swStartTime;
+            swElapsed = Math.max(0, timerTarget - passed);
+            if (swElapsed === 0) { 
+              toggleStopwatch(); 
+              // Visual flash when timer ends
+              const display = document.getElementById('sw-display');
+              display.style.color = 'var(--brand-accent)';
+              setTimeout(() => display.style.color = '', 2000);
+            }
+          }
+          updateSwDisplay();
+        }, 10);
+      }
+    }
+
+    function resetStopwatch() {
+      clearInterval(swInterval);
+      isSwRunning = false;
+      swElapsed = swMode === 'timer' ? timerTarget : 0;
+      updateSwDisplay();
+      const btn = document.getElementById('sw-btn-start');
+      btn.innerText = 'Start';
+      btn.classList.remove('stop');
+      btn.classList.add('start');
+      if (swMode === 'timer') document.getElementById('timer-input-area').style.display = 'flex';
+      document.getElementById('sw-display').style.color = '';
+    }
+
+    function updateSwDisplay() {
+      const date = new Date(swElapsed);
+      const m = String(date.getUTCMinutes()).padStart(2, '0');
+      const s = String(date.getUTCSeconds()).padStart(2, '0');
+      const ms = String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0');
+      document.getElementById('sw-display').innerText = `${m}:${s}.${ms}`;
+    }
+
+    function switchNoteTab(tab) {
+      state.notesActiveTab = tab;
+      document.getElementById('note-tab-public').classList.toggle('active', tab === 'public');
+      document.getElementById('note-tab-personal').classList.toggle('active', tab === 'personal');
+      state.activeNoteId = null;
+      document.getElementById('note-empty-state').style.display = 'flex';
+      document.getElementById('note-viewer-area').style.display = 'none';
+      renderNotesList();
+    }
+
+    function renderNotesList() {
+      const container = document.getElementById('notes-list-sidebar');
+      const notes = state.notesActiveTab === 'public' ? state.globalNotes : state.privateNotes;
+      
+      if (!notes || notes.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); margin-top:2rem; font-size:0.95rem;">No documents found.</div>`;
+        return;
+      }
+
+      container.innerHTML = [...notes].sort((a,b) => b.ts - a.ts).map(n => `
+        <div class="note-item-preview ${n.id === state.activeNoteId ? 'active' : ''}" onclick="openNote('${n.id}')">
+          <div style="font-weight:800; font-size: 1.05rem; color:var(--text-main); margin-bottom:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${n.title || 'Untitled Document'}</div>
+          <div style="font-size:0.8rem; font-weight:700; color:var(--text-dim); display:flex; justify-content:space-between;">
+            <span>${new Date(n.ts).toLocaleDateString()}</span>
+            ${n.img || n.yt ? '<i data-lucide="paperclip" style="width:12px;"></i>' : ''}
+          </div>
+        </div>
+      `).join('');
       lucide.createIcons();
     }
 
-    /* ==========================================================================
-       6. FULL TIMETABLE MATRIX RENDER & EDIT
-       ========================================================================== */
-    function renderTimetableMatrix() {
-      const tbody = document.getElementById('matrix-tbody');
-      let html = '';
+    function createNewNote() {
+      state.activeNoteId = Date.now().toString();
+      const newNote = { id: state.activeNoteId, title: '', body: '', img: '', yt: '', ts: Date.now() };
+      if (state.notesActiveTab === 'public') state.globalNotes.push(newNote);
+      else state.privateNotes.push(newNote);
+      
+      renderNotesList();
+      openNote(state.activeNoteId);
+    }
 
-      state.timings.filter(t => t.type === 'class').forEach(slot => {
-        html += `<tr>`;
-        html += `<td>
-          <div style="font-weight:800; color:var(--gemini-light-blue); font-size: 0.95rem;">${slot.label}</div>
-          <div style="font-size:0.75rem; color:var(--text-muted); margin-top: 0.2rem;">${slot.start} - ${slot.end}</div>
-        </td>`;
+    function getNoteRef(id) {
+      let n = (state.globalNotes || []).find(x => x.id === id);
+      if (n) return { note: n, type: 'public' };
+      n = (state.privateNotes || []).find(x => x.id === id);
+      if (n) return { note: n, type: 'personal' };
+      return null;
+    }
 
-        for (let d = 1; d <= 7; d++) {
-          const session = state.schedule[d]?.[slot.id] || ['--', '--', '--'];
-          html += `
-            <td>
-              <div class="table-cell-card" style="cursor: ${isAdmin ? 'pointer' : 'default'};" onclick="${isAdmin ? `openEditSessionModal(${d}, '${slot.id}')` : ''}">
-                <span class="cell-subject">${session[0]}</span>
-                <div class="cell-details">
-                  <span>📍 ${session[1]}</span>
-                  <span>👤 ${session[2]}</span>
-                </div>
-              </div>
-            </td>
-          `;
-        }
-        html += `</tr>`;
+    function openNote(id) {
+      state.activeNoteId = id;
+      const ref = getNoteRef(id);
+      if (!ref) return;
+      const { note, type } = ref;
+
+      document.getElementById('note-empty-state').style.display = 'none';
+      document.getElementById('note-viewer-area').style.display = 'flex';
+
+      document.getElementById('active-note-title').value = note.title || '';
+      document.getElementById('active-note-body').value = note.body || '';
+      document.getElementById('active-note-image').value = note.img || '';
+      document.getElementById('active-note-youtube').value = note.yt || '';
+
+      // Set up on-the-fly save listeners
+      const inputs = ['title', 'body', 'image', 'youtube'];
+      inputs.forEach(key => {
+        const el = document.getElementById(`active-note-${key}`);
+        el.oninput = () => saveActiveNote(); 
       });
 
-      tbody.innerHTML = html;
-    }
-
-    function openEditSessionModal(day, sessionId) {
-      state.activeEditingCell = { day, sessionId };
-      const current = state.schedule[day]?.[sessionId] || ['', '', ''];
-      
-      document.getElementById('edit-sub-code').value = current[0] || '';
-      document.getElementById('edit-sub-room').value = current[1] || '';
-      document.getElementById('edit-sub-teacher').value = current[2] || '';
-      
-      document.getElementById('modal-edit-session').classList.add('open');
-    }
-
-    function saveSessionEdit() {
-      if (!state.activeEditingCell) return;
-      const { day, sessionId } = state.activeEditingCell;
-
-      const code = document.getElementById('edit-sub-code').value.trim() || 'Free';
-      const room = document.getElementById('edit-sub-room').value.trim() || 'N/A';
-      const teacher = document.getElementById('edit-sub-teacher').value.trim() || 'N/A';
-
-      if (!state.schedule[day]) state.schedule[day] = {};
-      state.schedule[day][sessionId] = [code, room, teacher];
-
-      closeModal('modal-edit-session');
-      renderAll();
-      saveGlobalToCloud();
-    }
-
-    function resetScheduleData() {
-      if (confirm('Reset schedule timetable back to original 3CS defaults?')) {
-        state.schedule = JSON.parse(JSON.stringify(defaultSchedule));
-        state.timings = JSON.parse(JSON.stringify(defaultTimings));
-        renderAll();
-        saveGlobalToCloud();
+      // Render Action Buttons
+      const actionsDiv = document.getElementById('note-actions-container');
+      let actionsHtml = '';
+      if (type === 'personal') {
+        actionsHtml += `<button class="btn-primary" style="padding:0.5rem 1rem; font-size:0.85rem;" onclick="publishNoteToGlobal('${id}')"><i data-lucide="globe" style="width:14px;"></i> Publish to Class</button>`;
       }
+      if (type === 'personal' || isAdmin) {
+        actionsHtml += `<button class="btn-secondary" style="padding:0.5rem 1rem; font-size:0.85rem; border-color:var(--brand-accent); color:var(--brand-accent);" onclick="deleteNote('${id}')"><i data-lucide="trash-2" style="width:16px;"></i></button>`;
+      }
+      actionsDiv.innerHTML = actionsHtml;
+
+      renderNotePreview(note);
+      renderNotesList(); // update active state
+      lucide.createIcons();
     }
 
-    /* ==========================================================================
-       7. MASTER CALENDAR ENGINE
-       ========================================================================== */
-    function renderCalendar() {
-      const monthYearText = document.getElementById('cal-month-year-text');
-      const daysContainer = document.getElementById('calendar-days-box');
-      
-      const date = state.selectedCalDate;
-      const year = date.getFullYear();
-      const month = date.getMonth();
+    function toggleAttachmentFields() {
+      const el = document.getElementById('attachment-fields');
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
 
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      monthYearText.innerText = `${monthNames[month]} ${year}`;
+    function extractYTId(url) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
 
-      const firstDayOfMonth = new Date(year, month, 1).getDay();
-      const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
-      const totalDaysPrevMonth = new Date(year, month, 0).getDate();
-
+    function renderNotePreview(note) {
       let html = '';
-
-      // Previous month padding days
-      for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-        const prevDayNum = totalDaysPrevMonth - i;
-        html += `<div class="cal-day-cell other-month"><span class="cal-day-num">${prevDayNum}</span></div>`;
+      if (note.img) html += `<img src="${note.img}" alt="Reference Image" onerror="this.style.display='none'" style="max-width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-light); margin-bottom: 1rem; box-shadow: var(--shadow-sm);">`;
+      if (note.yt) {
+        const yid = extractYTId(note.yt);
+        if (yid) html += `<iframe src="https://www.youtube.com/embed/${yid}" allowfullscreen style="width: 100%; aspect-ratio: 16/9; border-radius: var(--radius-sm); border: none; box-shadow: var(--shadow-sm);"></iframe>`;
       }
+      document.getElementById('active-note-preview').innerHTML = html;
+    }
 
-      // Current month days
-      const today = getCurrentTimeObj();
-      for (let d = 1; d <= totalDaysInMonth; d++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d ? 'today' : '';
-        
-        // Auto cycle calculation (skipping weekends) or user custom override
-        let cycleTagHtml = '';
-        const cycleAssigned = state.dateCycleMap[dateStr];
-        if (cycleAssigned && cycleAssigned !== 'OFF') {
-          cycleTagHtml = `<span class="cal-cycle-tag">Day ${cycleAssigned}</span>`;
-        }
+    function saveActiveNote() {
+      if (!state.activeNoteId) return;
+      const ref = getNoteRef(state.activeNoteId);
+      if (!ref) return;
 
-        const hasEvents = state.events[dateStr] && state.events[dateStr].length > 0;
-        const eventDot = hasEvents ? `<div class="cal-event-dot"></div>` : '';
+      ref.note.title = document.getElementById('active-note-title').value;
+      ref.note.body = document.getElementById('active-note-body').value;
+      ref.note.img = document.getElementById('active-note-image').value;
+      ref.note.yt = document.getElementById('active-note-youtube').value;
+      ref.note.ts = Date.now();
 
-        html += `
-          <div class="cal-day-cell ${isToday}" onclick="inspectCalendarDate('${dateStr}')">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="cal-day-num">${d}</span>
-              ${eventDot}
-            </div>
-            ${cycleTagHtml}
-          </div>
-        `;
+      renderNotePreview(ref.note);
+      
+      // Debounce the cloud save slightly to avoid spamming writes
+      if(window.saveNoteTimeout) clearTimeout(window.saveNoteTimeout);
+      window.saveNoteTimeout = setTimeout(() => {
+        renderNotesList();
+        if (ref.type === 'public') saveGlobalToCloud();
+        else savePrivateToCloud();
+      }, 1000);
+    }
+
+    function deleteNote(id) {
+      if (confirm('Delete this document permanently?')) {
+        state.globalNotes = state.globalNotes.filter(n => n.id !== id);
+        state.privateNotes = state.privateNotes.filter(n => n.id !== id);
+        state.activeNoteId = null;
+        document.getElementById('note-empty-state').style.display = 'flex';
+        document.getElementById('note-viewer-area').style.display = 'none';
+        renderNotesList();
+        saveGlobalToCloud();
+        savePrivateToCloud();
       }
-
-      daysContainer.innerHTML = html;
-      inspectCalendarDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
     }
 
-    function prevMonth() {
-      state.selectedCalDate.setMonth(state.selectedCalDate.getMonth() - 1);
-      renderCalendar();
+    function publishNoteToGlobal(id) {
+      const note = state.privateNotes.find(n => n.id === id);
+      if (note && confirm('Make this document public for the whole class to see?')) {
+        state.privateNotes = state.privateNotes.filter(n => n.id !== id);
+        state.globalNotes.push(note);
+        savePrivateToCloud();
+        saveGlobalToCloud();
+        switchNoteTab('public');
+        openNote(id);
+      }
     }
 
-    function nextMonth() {
-      state.selectedCalDate.setMonth(state.selectedCalDate.getMonth() + 1);
-      renderCalendar();
-    }
-
-    function jumpToToday() {
-      state.selectedCalDate = getCurrentTimeObj();
-      renderCalendar();
-    }
-
-    function inspectCalendarDate(dateStr) {
-      state.activeInspectedDate = dateStr;
-      
-      // Parse the date back to get the nice formatting (e.g. Mon, Sept 14)
-      const parts = dateStr.split('-');
-      const parsedDate = new Date(parts[0], parts[1] - 1, parts[2]);
-      const formattedDate = parsedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-      
-      document.getElementById('selected-date-title').innerText = formattedDate;
-      
-      const assignedCycle = state.dateCycleMap[dateStr] || '1';
-      document.getElementById('date-cycle-selector').value = assignedCycle;
-      document.getElementById('selected-date-cycle').innerText = assignedCycle === 'OFF' ? 'No Classes' : `Orbit Day ${assignedCycle}`;
-      
-      document.getElementById('date-cycle-selector').disabled = !isAdmin;
-      document.getElementById('add-event-btn').style.display = isAdmin ? 'inline-flex' : 'none';
-      document.getElementById('reset-schedule-btn').style.display = isAdmin ? 'inline-flex' : 'none';
-
-      // Render events
-      const events = state.events[dateStr] || [];
-      const listContainer = document.getElementById('day-events-list');
-      if (events.length === 0) {
-        listContainer.innerHTML = `<div style="padding: 1rem; text-align: center; color:var(--text-dim); background: rgba(255,255,255,0.02); border-radius: 8px;">No special events scheduled for this day.</div>`;
+    function renderTasks() {
+      // Global Tasks
+      const globalContainer = document.getElementById('global-tasks-container-list');
+      if (!state.globalTasks || state.globalTasks.length === 0) {
+        globalContainer.innerHTML = `<div style="color:var(--text-muted); font-size:0.95rem; padding:1.5rem; background: var(--bg-surface-solid); border:1px dashed var(--border-light); border-radius:var(--radius-md); text-align: center;">No global assignments active.</div>`;
       } else {
-        listContainer.innerHTML = events.map((e, idx) => `
-          <div style="padding:0.75rem; background:rgba(255,255,255,0.04); border-radius:8px; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center; border-left: 3px solid var(--gemini-blue);">
-            <span>📌 ${e.title}</span>
-            ${isAdmin ? `<button class="icon-btn" style="width:24px; height:24px;" onclick="removeEvent('${dateStr}', ${idx})"><i data-lucide="trash-2" style="width:12px;"></i></button>` : ''}
+        globalContainer.innerHTML = state.globalTasks.map((t, idx) => `
+          <div class="task-item" style="border-left: 4px solid var(--brand-accent);">
+            <div style="display:flex; align-items:center; gap:1.25rem;">
+              <div>
+                <div style="font-weight:800; font-size:1.1rem; color:var(--text-main);">${t.title}</div>
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem; font-weight:700;">
+                  <span style="background:rgba(217,101,112,0.15); color:var(--brand-accent); padding:0.2rem 0.5rem; border-radius:4px; margin-right:0.5rem;">CLASS WIDE</span> [${t.subject}]
+                </div>
+              </div>
+            </div>
+            ${isAdmin ? `<button class="icon-btn" onclick="deleteGlobalTask(${idx})"><i data-lucide="trash-2" style="width:16px;"></i></button>` : ''}
+          </div>
+        `).join('');
+      }
+
+      // Personal Tasks
+      const container = document.getElementById('personal-tasks-container-list');
+      if (state.tasks.length === 0) {
+        container.innerHTML = `
+        <div style="text-align:center; padding:3rem 1rem; color:var(--text-muted); background: var(--bg-surface-solid); border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+          <div style="background: rgba(52, 168, 83, 0.1); padding: 1rem; border-radius: 50%; display:inline-block; margin-bottom:1rem;">
+            <i data-lucide="check-circle" style="width:48px; height:48px; color:var(--brand-success);"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight:800; color:var(--text-main); margin-bottom: 0.25rem;">All Caught Up!</h3>
+          <p>No personal tasks pending. Enjoy your free time.</p>
+        </div>`;
+      } else {
+        container.innerHTML = state.tasks.map((task, idx) => `
+          <div class="task-item ${task.completed ? 'completed' : ''}">
+            <div style="display:flex; align-items:center; gap:1.25rem;">
+              <div class="custom-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${idx})">
+                ${task.completed ? '<i data-lucide="check" style="width:16px; height:16px;"></i>' : ''}
+              </div>
+              <div>
+                <div class="task-text" style="font-weight:700; font-size:1.05rem; color:var(--text-main); transition: color 0.3s;">${task.title}</div>
+                <div style="font-size:0.8rem; color:var(--brand-secondary); font-weight:800; margin-top:0.3rem;">[${task.subject}]</div>
+              </div>
+            </div>
+            <button class="icon-btn" onclick="deleteTask(${idx})">
+              <i data-lucide="trash-2" style="width:16px;"></i>
+            </button>
           </div>
         `).join('');
       }
       lucide.createIcons();
     }
 
-    function assignCycleToSelectedDate(value) {
-      if (!state.activeInspectedDate || !isAdmin) return;
-      state.dateCycleMap[state.activeInspectedDate] = value;
-      renderCalendar();
-      saveGlobalToCloud();
-    }
-
-    function addEventModal() {
-      if (!isAdmin) return;
-      const title = prompt('Enter Event or Note title for ' + state.activeInspectedDate);
-      if (title && state.activeInspectedDate) {
-        if (!state.events[state.activeInspectedDate]) state.events[state.activeInspectedDate] = [];
-        state.events[state.activeInspectedDate].push({ title, type: 'note' });
-        renderCalendar();
-        saveGlobalToCloud();
-      }
-    }
-    
-    function removeEvent(dateStr, idx) {
-       if (!isAdmin) return;
-       state.events[dateStr].splice(idx, 1);
-       if (state.events[dateStr].length === 0) delete state.events[dateStr];
-       inspectCalendarDate(dateStr);
-       renderCalendar(); // refresh dots
-       saveGlobalToCloud();
-    }
-
-    /* ==========================================================================
-       8. TASKS & ASSIGNMENTS MANAGER
-       ========================================================================== */
-    function renderTasks() {
-      const container = document.getElementById('tasks-container-list');
-      if (state.tasks.length === 0) {
-        container.innerHTML = `
-          <div style="text-align:center; padding:3rem 1rem; color:var(--text-muted); background: rgba(255,255,255,0.01); border-radius: var(--radius-md);">
-            <i data-lucide="check-circle" style="width:48px; height:48px; margin-bottom:1rem; color:var(--gemini-green); opacity: 0.8;"></i>
-            <h3 style="font-weight: 700; color: #fff; margin-bottom: 0.5rem;">All clear!</h3>
-            <p>You have no pending academic tasks in your personal to-do list.</p>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      container.innerHTML = state.tasks.map((task, idx) => `
-        <div class="task-item ${task.completed ? 'completed' : ''}">
-          <div class="task-left">
-            <div class="custom-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${idx})">
-              ${task.completed ? '<i data-lucide="check" style="width:14px; height:14px;"></i>' : ''}
-            </div>
-            <div>
-              <div class="task-text" style="font-weight:600; font-size:1rem; color: #fff;">${task.title}</div>
-              <div style="font-size:0.75rem; color:var(--gemini-purple); font-weight: 700; letter-spacing: 0.5px; margin-top: 0.2rem;">${task.subject}</div>
-            </div>
-          </div>
-          <button class="icon-btn" onclick="deleteTask(${idx})" style="width:36px; height:36px;">
-            <i data-lucide="trash-2" style="width:16px;"></i>
-          </button>
-        </div>
-      `).join('');
-
-      lucide.createIcons();
-    }
-
     function openNewTaskModal() {
+      document.getElementById('modal-task-title').innerText = 'Add Personal Task';
+      document.getElementById('task-input-type').value = 'personal';
       document.getElementById('modal-new-task').classList.add('open');
+      setTimeout(() => document.getElementById('task-input-title').focus(), 100);
+    }
+    function openNewGlobalTaskModal() {
+      document.getElementById('modal-task-title').innerText = 'Add Class Assignment (Global)';
+      document.getElementById('task-input-type').value = 'global';
+      document.getElementById('modal-new-task').classList.add('open');
+      setTimeout(() => document.getElementById('task-input-title').focus(), 100);
     }
 
     function saveNewTask() {
       const title = document.getElementById('task-input-title').value.trim();
       const subject = document.getElementById('task-input-subject').value;
+      const type = document.getElementById('task-input-type').value;
       if (!title) return;
 
-      state.tasks.push({ title, subject, completed: false });
+      if (type === 'global' && isAdmin) {
+        if(!state.globalTasks) state.globalTasks = [];
+        state.globalTasks.push({ title, subject });
+        saveGlobalToCloud();
+      } else {
+        state.tasks.push({ title, subject, completed: false });
+        savePrivateToCloud();
+      }
+      
       document.getElementById('task-input-title').value = '';
       closeModal('modal-new-task');
       renderTasks();
-      savePrivateToCloud();
     }
 
-    function toggleTask(index) {
-      state.tasks[index].completed = !state.tasks[index].completed;
-      renderTasks();
-      savePrivateToCloud();
+    function toggleTask(idx) { 
+      state.tasks[idx].completed = !state.tasks[idx].completed; 
+      renderTasks(); 
+      savePrivateToCloud(); 
+    }
+    function deleteTask(idx) { 
+      state.tasks.splice(idx, 1); 
+      renderTasks(); 
+      savePrivateToCloud(); 
+    }
+    function deleteGlobalTask(idx) { 
+      if(isAdmin){ state.globalTasks.splice(idx, 1); renderTasks(); saveGlobalToCloud(); } 
     }
 
-    function deleteTask(index) {
-      state.tasks.splice(index, 1);
-      renderTasks();
-      savePrivateToCloud();
-    }
-
-    /* ==========================================================================
-       9. COURSE & ROOM DIRECTORY
-       ========================================================================== */
-    function renderDirectory() {
-      const container = document.getElementById('subject-directory-cards');
-      container.innerHTML = courseCatalog.map(c => `
-        <div class="subject-card">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span class="subject-code-badge">${c.code}</span>
-            <i data-lucide="${c.icon}" style="color:var(--gemini-purple); width:20px;"></i>
+    function renderAnnouncements() {
+      const container = document.getElementById('global-reminders-container');
+      if (!state.globalAnnouncements || state.globalAnnouncements.length === 0) {
+        container.style.display = 'none'; return;
+      }
+      container.style.display = 'flex';
+      container.innerHTML = state.globalAnnouncements.map(r => `
+        <div class="announcement-card">
+          <div style="display:flex; align-items:center; gap:1.25rem;">
+            <div style="background:var(--brand-accent); padding:0.75rem; border-radius:50%; color:#fff; box-shadow: 0 4px 15px rgba(217, 101, 112, 0.4);">
+              <i data-lucide="megaphone" style="width:20px; height:20px;"></i>
+            </div>
+            <div>
+              <div style="font-size:0.8rem; color:var(--brand-accent); font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.2rem;">Global Broadcast</div>
+              <div style="font-size:1.1rem; font-weight:700; color:var(--text-main);">${r.text}</div>
+            </div>
           </div>
-          <h3 style="font-size:1.1rem; font-weight:800; color:#fff;">${c.name}</h3>
-          <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">${c.desc}</p>
+          ${isAdmin ? `<button class="icon-btn" style="background:transparent; border-color:transparent;" onclick="deleteAnnouncement(${r.id})"><i data-lucide="x" style="width:18px;"></i></button>` : ''}
         </div>
       `).join('');
       lucide.createIcons();
     }
-
-    /* ==========================================================================
-       10. TIMING EDITOR & TIME TRAVEL MODAL
-       ========================================================================== */
-    function openTimingModal() {
-      const listContainer = document.getElementById('timing-list-editor');
-      listContainer.innerHTML = state.timings.map((slot, idx) => `
-        <div style="display:flex; gap:0.75rem; align-items:center; background:rgba(255,255,255,0.03); padding:0.75rem; border-radius:8px; border: 1px solid var(--border-glow);">
-          <span style="font-size:0.85rem; width:110px; font-weight:600;">${slot.label}</span>
-          <input type="time" class="form-control" id="timing-start-${idx}" value="${slot.start}">
-          <span style="color: var(--text-dim);">to</span>
-          <input type="time" class="form-control" id="timing-end-${idx}" value="${slot.end}">
-        </div>
-      `).join('');
-
-      document.getElementById('save-timing-btn').style.display = isAdmin ? 'inline-flex' : 'none';
-      
-      const inputs = listContainer.querySelectorAll('input');
-      inputs.forEach(input => input.disabled = !isAdmin);
-
-      document.getElementById('modal-timing').classList.add('open');
-    }
-
-    function saveCustomTimings() {
+    
+    function addGlobalAnnouncement() {
       if (!isAdmin) return;
-      state.timings.forEach((slot, idx) => {
-        const startVal = document.getElementById(`timing-start-${idx}`).value;
-        const endVal = document.getElementById(`timing-end-${idx}`).value;
-        if (startVal) slot.start = startVal;
-        if (endVal) slot.end = endVal;
-      });
-
-      closeModal('modal-timing');
-      renderAll();
+      const text = prompt('Enter a global announcement to broadcast to all viewers:');
+      if (text && text.trim() !== '') {
+        if (!state.globalAnnouncements) state.globalAnnouncements = [];
+        state.globalAnnouncements.push({ id: Date.now(), text: text.trim() });
+        renderAnnouncements(); 
+        saveGlobalToCloud();
+      }
+    }
+    
+    function deleteAnnouncement(id) {
+      if (!isAdmin) return;
+      state.globalAnnouncements = state.globalAnnouncements.filter(r => r.id !== id);
+      renderAnnouncements(); 
       saveGlobalToCloud();
     }
 
-    function applyTimeSimulation() {
-      const simVal = document.getElementById('sim-time-input').value;
-      if (simVal) {
-        state.simulationTime = simVal;
-        tickClock();
-      }
+    function renderDayPills() {
+      const container = document.getElementById('day-picker-pills');
+      container.innerHTML = [1,2,3,4,5,6,7].map(i => `<button class="cycle-btn ${i === state.selectedDayView ? 'active' : ''}" onclick="selectDashboardDay(${i})">Day ${i}</button>`).join('');
     }
-
-    function clearTimeSimulation() {
-      state.simulationTime = null;
-      document.getElementById('sim-time-input').value = '';
-      tickClock();
+    function selectDashboardDay(dayNum) { 
+      state.selectedDayView = dayNum; 
+      document.getElementById('orbit-cycle-indicator').innerText = `Day ${dayNum} Cycle`;
+      renderDayPills(); 
+      renderTimeline(); 
+      tickClock(); // Immediate refresh to see if current slot matches new day
     }
-
-    /* ==========================================================================
-       11. NOTES DRAWER ENGINE (PUBLIC & PRIVATE)
-       ========================================================================== */
-    function toggleNotesDrawer() {
-      const drawer = document.getElementById('notes-drawer-panel');
-      drawer.classList.toggle('open');
-      if (drawer.classList.contains('open')) {
-        renderNotesList();
-      }
-    }
-
-    function switchNotesTab(tab) {
-      state.activeNotesTab = tab;
-      document.getElementById('tab-btn-public').classList.toggle('active', tab === 'public');
-      document.getElementById('tab-btn-private').classList.toggle('active', tab === 'private');
-      renderNotesList();
-    }
-
-    function renderNotesList() {
-      const container = document.getElementById('notes-list-container');
-      const notes = state.activeNotesTab === 'public' ? state.globalNotes : state.privateNotes;
+    
+    function renderTimeline() {
+      const container = document.getElementById('timeline-cards-container');
+      const dayData = state.schedule[state.selectedDayView] || {};
       
-      if (!notes || notes.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-dim); margin-top: 2rem;">No ${state.activeNotesTab} notes yet.</div>`;
-        return;
-      }
-
-      container.innerHTML = [...notes].sort((a,b) => b.timestamp - a.timestamp).map(note => {
-        const date = new Date(note.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        // Anyone can delete their own private notes. Only Admins can delete public notes.
-        const canDelete = state.activeNotesTab === 'private' || isAdmin; 
-        
-        return `
-          <div class="note-card">
-            <p>${note.text}</p>
-            <div class="note-meta">
-              <span>${date}</span>
-              ${canDelete ? `<button class="icon-btn" style="width:24px; height:24px;" onclick="deleteNote('${note.id}')" title="Delete Note"><i data-lucide="trash-2" style="width:12px;"></i></button>` : ''}
-            </div>
-          </div>
-        `;
+      container.innerHTML = state.timings.map(slot => {
+        if (slot.type === 'break') {
+          return `
+            <div class="timeline-card break-card" data-slot-id="${slot.id}">
+              <div style="display:flex; flex-direction:column;">
+                <span style="font-family:'JetBrains Mono'; font-weight:800; font-size:1rem; color:var(--text-main);">${slot.start} - ${slot.end}</span>
+                <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-top:0.2rem;">${slot.label}</span>
+              </div>
+              <div style="font-weight:700; font-size:1.1rem; color:var(--text-muted);">${slot.name}</div>
+              <div><i data-lucide="coffee" style="width:24px; height:24px; color:var(--text-dim);"></i></div>
+            </div>`;
+        } else {
+          const session = dayData[slot.id] || ['Free Period', 'N/A', 'N/A'];
+          return `
+            <div class="timeline-card" data-slot-id="${slot.id}">
+              <div style="display:flex; flex-direction:column;">
+                <span style="font-family:'JetBrains Mono'; font-weight:800; font-size:1rem; color:var(--text-main);">${slot.start} - ${slot.end}</span>
+                <span style="font-size:0.8rem; color:var(--brand-secondary); font-weight:800; text-transform:uppercase; margin-top:0.2rem;">${slot.label}</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:0.4rem;">
+                <span style="font-weight:800; font-size:1.25rem;">${session[0]}</span>
+                <div style="display:flex; gap:1.25rem; font-size:0.85rem; color:var(--text-muted); font-weight:600;">
+                  <span style="display:flex; align-items:center; gap:0.3rem;"><i data-lucide="map-pin" style="width:14px;"></i> Rm ${session[1]}</span>
+                  <span style="display:flex; align-items:center; gap:0.3rem;"><i data-lucide="user" style="width:14px;"></i> ${session[2]}</span>
+                </div>
+              </div>
+              ${isAdmin ? `<button class="icon-btn" onclick="openEditSessionModal(${state.selectedDayView}, '${slot.id}')"><i data-lucide="edit-3" style="width:16px;"></i></button>` : ''}
+            </div>`;
+        }
       }).join('');
       lucide.createIcons();
     }
 
-    function submitNote() {
-      const input = document.getElementById('new-note-text');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const newNote = {
-        id: Date.now().toString(),
-        text: text,
-        timestamp: Date.now()
-      };
-
-      if (state.activeNotesTab === 'public') {
-        if (!state.globalNotes) state.globalNotes = [];
-        state.globalNotes.push(newNote);
-        saveGlobalToCloud();
-      } else {
-        if (!state.privateNotes) state.privateNotes = [];
-        state.privateNotes.push(newNote);
-        savePrivateToCloud();
-      }
-
-      input.value = '';
-      renderNotesList();
+    function renderTimetableMatrix() {
+      const tbody = document.getElementById('matrix-tbody');
+      tbody.innerHTML = state.timings.filter(t => t.type === 'class').map(slot => {
+        let row = `<tr><td>
+          <div style="font-weight:800; font-size:1.1rem; color:var(--brand-primary);">${slot.label}</div>
+          <div style="font-family:'JetBrains Mono'; font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-top:0.25rem;">${slot.start} - ${slot.end}</div>
+        </td>`;
+        
+        for (let d = 1; d <= 7; d++) {
+          const session = state.schedule[d]?.[slot.id] || ['--', '--', '--'];
+          row += `<td>
+            <div class="table-cell-card" style="cursor:${isAdmin?'pointer':'default'};" onclick="${isAdmin?`openEditSessionModal(${d}, '${slot.id}')`:''}">
+              <div style="font-weight:800; font-size:1.05rem; color:var(--text-main);">${session[0]}</div>
+              <div style="display:flex; flex-direction:column; gap:0.2rem; font-size:0.8rem; color:var(--text-muted); font-weight:600; margin-top:auto;">
+                <span>📍 ${session[1]}</span>
+                <span>👤 ${session[2]}</span>
+              </div>
+            </div>
+          </td>`;
+        }
+        return row + `</tr>`;
+      }).join('');
     }
 
-    function deleteNote(id) {
-      if (state.activeNotesTab === 'public') {
-        if (!isAdmin) return;
-        state.globalNotes = state.globalNotes.filter(n => n.id !== id);
+    function openEditSessionModal(day, sessionId) {
+      if(!isAdmin) return;
+      state.activeEditingCell = { day, sessionId };
+      const current = state.schedule[day]?.[sessionId] || ['', '', ''];
+      document.getElementById('edit-sub-code').value = current[0];
+      document.getElementById('edit-sub-room').value = current[1];
+      document.getElementById('edit-sub-teacher').value = current[2];
+      document.getElementById('modal-edit-session').classList.add('open');
+      setTimeout(() => document.getElementById('edit-sub-code').focus(), 100);
+    }
+    
+    function saveSessionEdit() {
+      if (!state.activeEditingCell || !isAdmin) return;
+      const { day, sessionId } = state.activeEditingCell;
+      const code = document.getElementById('edit-sub-code').value || 'Free';
+      const room = document.getElementById('edit-sub-room').value || 'N/A';
+      const teacher = document.getElementById('edit-sub-teacher').value || 'N/A';
+      
+      if (!state.schedule[day]) state.schedule[day] = {};
+      state.schedule[day][sessionId] = [code, room, teacher];
+      
+      closeModal('modal-edit-session');
+      renderAll(); 
+      saveGlobalToCloud();
+    }
+    
+    function resetScheduleData() {
+      if (isAdmin && confirm('Are you sure you want to reset the timetable to factory defaults? This action cannot be undone.')) {
+        state.schedule = JSON.parse(JSON.stringify(defaultSchedule));
+        renderAll(); 
         saveGlobalToCloud();
-      } else {
-        state.privateNotes = state.privateNotes.filter(n => n.id !== id);
-        savePrivateToCloud();
       }
-      renderNotesList();
     }
 
-    /* ==========================================================================
-       12. AUDIO ENGINE & UTILS
-       ========================================================================== */
-    function toggleAudioChime() {
-      state.audioEnabled = !state.audioEnabled;
-      const btn = document.getElementById('audio-toggle-btn');
-      btn.style.color = state.audioEnabled ? 'var(--text-main)' : 'var(--text-dim)';
+    function renderDirectory() {
+      document.getElementById('subject-directory-cards').innerHTML = courseCatalog.map(c => `
+        <div class="glass-panel dir-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div class="dir-icon-wrap">
+              <i data-lucide="${c.icon}" style="width:24px; height:24px;"></i>
+            </div>
+            <span style="font-family:'JetBrains Mono'; font-weight:800; font-size:0.9rem; color:var(--brand-secondary); background:rgba(155,114,203,0.1); padding:0.3rem 0.6rem; border-radius:var(--radius-sm);">${c.code}</span>
+          </div>
+          <div>
+            <h3 style="font-size:1.3rem; font-weight:800; margin-bottom:0.5rem; line-height:1.2;">${c.name}</h3>
+            <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.5;">${c.desc}</p>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
     }
 
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       
-      document.getElementById(`tab-${tabId}`).classList.add('active');
+      const targetPane = document.getElementById(`tab-${tabId}`);
+      targetPane.classList.add('active');
       btn.classList.add('active');
+      
+      // Trigger reflow to restart animations
+      targetPane.style.animation = 'none';
+      targetPane.offsetHeight; 
+      targetPane.style.animation = null; 
     }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.remove('open');
+    
+    function closeModal(id) { 
+      const modal = document.getElementById(id);
+      modal.style.opacity = '0';
+      setTimeout(() => {
+        modal.classList.remove('open');
+        modal.style.opacity = '';
+      }, 400); // Wait for transition
     }
-
+    
     function renderAll() {
       renderDayPills();
       renderTimeline();
       renderTimetableMatrix();
-      renderCalendar();
       renderTasks();
       renderDirectory();
-      renderGlobalReminders();
+      renderAnnouncements();
+      renderNotesList();
       tickClock();
     }
 
-    // Initialize application
     window.onload = function() {
-      initCanvas();
       setupFirebase();
       renderAll();
-      setInterval(tickClock, 1000);
+      setInterval(tickClock, 1000); // 1-second accurate clock update
       lucide.createIcons();
+      
+      // Close modals on clicking backdrop
+      document.querySelectorAll('.modal-backdrop').forEach(bd => {
+        bd.addEventListener('click', (e) => {
+          if (e.target === bd) closeModal(bd.id);
+        });
+      });
     };
   </script>
 </body>
